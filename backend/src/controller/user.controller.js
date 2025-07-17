@@ -5,23 +5,6 @@ import nodemailer from 'nodemailer';
 import OTP from '../models/otp.model.js';
 import cloudinary from '../config/cloudinary.js'
 
-// Test Cloudinary connection
-export const testCloudinary = async (req, res) => {
-    try {
-        // Test with a simple ping
-        const result = await cloudinary.api.ping();
-        res.status(200).json({
-            message: 'Cloudinary connection successful',
-            status: result.status
-        });
-    } catch (err) {
-        console.error('Cloudinary connection error:', err);
-        res.status(500).json({
-            message: 'Cloudinary connection failed',
-            error: err.message
-        });
-    }
-}
 
 
 export const signup=async(req,res)=>{
@@ -231,3 +214,32 @@ export const setAvatar=async(req,res)=>{
         });
     }
 }
+
+
+export const changeUsername=async(req,res)=>{
+    try{
+        const {newUsername}=req.body;
+        const userId=req.user;
+
+        if(!newUsername){
+            return res.status(400).json({message: 'New username is required'});
+        }
+
+        const user=await User.findById(userId);
+        if(!user){
+            return res.status(404).json({message: 'User not found'});
+        }
+
+        user.username=newUsername;
+        await user.save();
+
+        res.status(200).json({message: 'Username updated successfully', username: user.username});
+    }catch(err){
+        console.error(err);
+        res.status(500).json({
+            message: 'Internal server error', 
+            error: err.message || 'Unknown error occurred'
+        });
+    }
+}
+

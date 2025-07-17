@@ -3,6 +3,25 @@ import User from '../models/user.model.js';
 import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
 import OTP from '../models/otp.model.js';
+import cloudinary from '../config/cloudinary.js'
+
+// Test Cloudinary connection
+export const testCloudinary = async (req, res) => {
+    try {
+        // Test with a simple ping
+        const result = await cloudinary.api.ping();
+        res.status(200).json({
+            message: 'Cloudinary connection successful',
+            status: result.status
+        });
+    } catch (err) {
+        console.error('Cloudinary connection error:', err);
+        res.status(500).json({
+            message: 'Cloudinary connection failed',
+            error: err.message
+        });
+    }
+}
 
 
 export const signup=async(req,res)=>{
@@ -149,5 +168,66 @@ export const resetPassword=async(req,res)=>{
     }catch(err){
         console.error(err);
         res.status(500).json({message: 'Internal server error'});
+    }
+}
+
+
+export const setAvatar=async(req,res)=>{
+    try{
+        const {avatar}=req.body;
+        const userId=req.user;
+        console.log('User ID:', userId);
+        
+        if(!avatar){
+            return res.status(400).json({message: 'Avatar is required'});
+        }
+
+        // Validate base64 format
+        if(!avatar.startsWith('data:image/')) {
+            return res.status(400).json({message: 'Invalid image format. Please provide a valid base64 image.'});
+        }
+
+        const user=await User.findById(userId);
+        if(!user){
+            return res.status(404).json({message: 'User not found'});
+        }
+
+        // Enhanced Cloudinary upload with better error handling
+        const result=await cloudinary.uploader.upload(avatar, {
+            folder: 'avatars',
+            width: 150,
+            height: 150,
+            crop: 'fill',
+            format: 'jpg',
+            quality: 'auto',
+            resource_type: 'image'
+        });
+
+        console.log('Cloudinary upload result:', result);
+        
+        user.avatar=result.secure_url;
+        await user.save();
+        
+        res.status(200).json({
+            message: 'Avatar set successfully', 
+            avatar: user.avatar,
+            cloudinaryId: result.public_id
+        });
+    }catch(err){
+        console.error('Avatar upload error:', err);
+        
+        // Handle specific Cloudinary errors
+        if(err.error && err.error.message) {
+            return res.status(400).json({
+                message: 'Cloudinary upload failed', 
+                error: err.error.message
+            });
+        }
+        
+        // Handle other errors
+        res.status(500).json({
+            message: 'Internal server error', 
+            error: err.message || 'Unknown error occurred'
+        });
     }
 }

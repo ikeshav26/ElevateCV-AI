@@ -26,10 +26,6 @@ const userSchema=new mongoose.Schema({
     avatar:{
         type:String,
         default:"https://res.cloudinary.com/ducvkar80/image/upload/v1752432217/avatars/b8hmel53wxf4hhywhpy5.jpg"
-    },
-    otp:{
-        type:String,
-        expires: 300 //5min
     }
 })
 

@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/user.model.js';
 import bcrypt from 'bcryptjs';
+import nodemailer from 'nodemailer';
+import OTP from '../models/otp.model.js';
 
 
 export const signup=async(req,res)=>{
@@ -66,6 +68,53 @@ export const logout=(req,res)=>{
     try{
         res.clearCookie('token', {httpOnly: true, secure: true, sameSite: 'None'});
         res.status(200).json({message: 'Logout successful'});   
+    }catch(err){
+        console.error(err);
+        res.status(500).json({message: 'Internal server error'});
+    }
+}
+
+
+export const sendOtp=async(req,res)=>{
+    try{
+        const {email}=req.body;
+
+        const user=await User.findOne({email});
+        if(!user){
+            return res.status(400).json({message: 'User not found'});
+        }
+
+        const Otp=Math.floor(100000 + Math.random() * 900000).toString();
+        const otpEntry=new OTP({
+            email: email,
+            otp: Otp
+        });
+        await otpEntry.save();
+
+        const auth=nodemailer.createTransport({
+            service: 'gmail',
+            secure: true,
+            port: 465,
+            auth: {
+                user: process.env.EMAIL,
+                pass: process.env.EMAIL_PASSWORD
+            }
+        });
+
+        const receiver={
+            from: process.env.EMAIL,
+            to: email,
+            subject: 'Password Reset',
+            text:"Your password reset otp :"+Otp
+        }
+
+        await auth.sendMail(receiver, (error, info) => {
+            if (error) {
+                return res.status(500).json({ message: 'Error sending email', error });
+            }
+            console.log('Email sent: ' + info.response);
+        });
+        res.status(200).json({message: 'OTP sent successfully', otp: Otp});
     }catch(err){
         console.error(err);
         res.status(500).json({message: 'Internal server error'});

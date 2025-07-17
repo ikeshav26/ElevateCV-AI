@@ -243,3 +243,26 @@ export const changeUsername=async(req,res)=>{
     }
 }
 
+
+
+export const LoggedInUSer=async(req,res)=>{
+    try{
+        const userId=req.user;
+        if(!userId){
+            return res.status(401).json({message: 'Unauthorized'});
+        }
+
+        const user=await User.findById(userId).select('-password');
+        if(!user){
+            return res.status(404).json({message: 'User not found'});
+        }
+
+        res.status(200).json({message: 'User retrieved successfully', user});
+    }catch(err){
+        console.error(err);
+        res.status(500).json({
+            message: 'Internal server error', 
+            error: err.message || 'Unknown error occurred'
+        });
+    }
+}

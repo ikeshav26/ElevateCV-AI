@@ -1,5 +1,5 @@
 import express from 'express';
-import { changeUsername, login, logout, resetPassword, sendOtp, setAvatar, signup } from '../controller/user.controller.js';
+import { changeUsername, LoggedInUSer, login, logout, resetPassword, sendOtp, setAvatar, signup } from '../controller/user.controller.js';
 import {userAuth} from '../middlewares/user.auth.js'
 import dotenv from 'dotenv';
 dotenv.config();
@@ -14,7 +14,7 @@ router.post('/send-otp',sendOtp)
 router.post('/verify-otp',resetPassword)
 router.post('/add-avatar',userAuth,setAvatar)
 router.post('/change-username',userAuth,changeUsername)
-
+router.get('/me',userAuth,LoggedInUSer)
 
 
 

@@ -120,3 +120,34 @@ export const sendOtp=async(req,res)=>{
         res.status(500).json({message: 'Internal server error'});
     }
 }
+
+
+
+export const resetPassword=async(req,res)=>{
+    try{
+        const {email,otp,newPassword}=req.body;
+        if(!email || !otp || !newPassword){
+            return res.status(400).json({message: 'All fields are required'});
+        }
+
+        const user=await User.findOne({email});
+        if(!user){
+            return res.status(400).json({message: 'User not found'});
+        }
+
+        const otpEntry=await OTP.findOne({email, otp});
+        if(!otpEntry){
+            return res.status(400).json({message: 'Invalid OTP'});
+        }
+
+        const hashedPassword=await bcrypt.hash(newPassword, 10);
+        user.password=hashedPassword;
+        await user.save();
+
+        await OTP.deleteOne({email, otp});
+        res.status(200).json({message: 'Password reset successful'});
+    }catch(err){
+        console.error(err);
+        res.status(500).json({message: 'Internal server error'});
+    }
+}

@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 export const AppContext = createContext();
 
 export const ContextProvider = ({ children }) => {
-  const [user, setuser] = useState(true);
+  const [user, setuser] = useState(false);
   const [loading, setloading] = useState(false);
   const [theme, settheme] = useState(() => localStorage.getItem("theme") || "dark");
   const navigate = useNavigate();

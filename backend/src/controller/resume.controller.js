@@ -93,7 +93,6 @@ export const generate = async (req, res) => {
 
 
 
-
 export const getAllResumes=async(req,res)=>{
   try{
     const userId=req.user;
@@ -124,7 +123,7 @@ export const getResume=async(req,res)=>{
 
 export const exploreResumes=async(req,res)=>{
   try{
-    const resumes=await Resume.find().sort({ createdAt: -1 });
+    const resumes=await Resume.find({ isPublic: true }).sort({ createdAt: -1 });
     res.status(200).json(resumes);
   }catch(err){
     console.error('Error exploring resumes:', err);
@@ -150,6 +149,29 @@ export const deleteResume=async (req, res) => {
     res.status(200).json({ message: 'Resume deleted successfully' });
   }catch(err){
     console.error('Error deleting resume:', err);
+    res.status(500).json({ message: 'Internal server error', error: err.message || 'Unknown error occurred' });
+  }
+}
+
+
+
+export const changeVisibility=async(req,res)=>{
+  try{
+    const resumeId=req.params.id;
+    const userId=req.user;
+    const { isPublic } = req.body;
+
+    const updatedResume=await Resume.findOneAndUpdate(
+      { _id: resumeId, userId },
+      { isPublic },
+      { new: true }
+    );
+    if(!updatedResume){
+      return res.status(404).json({ message: 'Resume not found or you do not have permission to change visibility' });
+    }
+    res.status(200).json({ message: 'Resume visibility updated successfully', resume: updatedResume });
+  }catch(err){
+    console.error('Error changing resume visibility:', err);
     res.status(500).json({ message: 'Internal server error', error: err.message || 'Unknown error occurred' });
   }
 }

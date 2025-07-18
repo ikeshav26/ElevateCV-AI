@@ -19,6 +19,8 @@ import {
   ArrowLeftOnRectangleIcon,
 } from '@heroicons/react/24/outline'
 import { AppContext } from '../context/ContextProvider'
+import toast from 'react-hot-toast'
+import axios from 'axios'
 
 const Navbar = () => {
   const { theme, settheme, user, setuser, navigate } = useContext(AppContext)
@@ -38,11 +40,19 @@ const Navbar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const handleLogout = () => {
-    setuser(null)
-    setIsProfileDropdownOpen(false)
-    setIsMenuOpen(false)
-    navigate('/')
+  const handleLogout =async () => {
+    try{
+      const res=await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/user/logout`, { withCredentials: true })
+      if (res.status === 200 || res.status === 201) {
+        setuser(false)
+        setIsProfileDropdownOpen(false)
+        setIsMenuOpen(false)
+        navigate('/')
+      }
+    }catch (error) {
+      toast.error('Logout failed. Please try again.')
+      console.error('Logout error:', error)
+    }
   }
 
   const isActive = (path) => window.location.pathname === path

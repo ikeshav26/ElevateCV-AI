@@ -26,7 +26,8 @@ const Login = () => {
       { withCredentials: true }
     );
 
-    setuser(res.data.user);
+    setuser(true);
+    localStorage.setItem('user', JSON.stringify(res.data.user));
     toast.success("Login successful!");
     navigate("/");
 
@@ -49,7 +50,7 @@ const Login = () => {
     e.preventDefault();
     console.log('Password reset for:', resetEmail);
     const res=await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/user/send-otp`, { email: resetEmail }, { withCredentials: true });
-    if (res.status === 200) {
+    if (res.status === 200 || res.status === 201) {
       toast.success("If this email exists, an OTP has been sent to reset your password.");
       navigate("/reset-password");
     }

@@ -24,7 +24,8 @@ const Signup = () => {
       }
     );
     if (res.status === 201 || res.status === 200) {
-      setuser(res.data.user);
+      setuser(true);
+      localStorage.setItem('user', JSON.stringify(res.data.user));
       toast.success("Signup successful! Please log in.");
       navigate("/");
     } else {

@@ -65,24 +65,24 @@ export const generate = async (req, res) => {
       userId: userId,
       name,
       resumeUrl: uploadResult.secure_url,
-      content: `Resume image generated using ${resumeData.model || 'AI'}`
+      content: `AI-powered resume generated using ${resumeData.model || 'Gemini AI'} with refined data structure`
     });
     
     await resume.save();
 
     res.status(201).json({
-      message: "Resume image generated and uploaded successfully",
+      message: "Resume generated successfully using AI-powered refinement",
       resume: {
         id: resume._id,
         name: resume.name,
-        email: resume.email,
         resumeUrl: resume.resumeUrl,
         createdAt: resume.createdAt
       },
       downloadUrl: uploadResult.secure_url,
-      generationType: resumeData.success ? 'AI_IMAGE' : 'TEMPLATE_IMAGE',
+      generationType: resumeData.success ? 'AI_REFINED_IMAGE' : 'FALLBACK_IMAGE',
       model: resumeData.model,
-      format: resumeData.format
+      format: resumeData.format,
+      refinedData: resumeData.refinedData // Include refined data for debugging
     });
 
   } catch (error) {

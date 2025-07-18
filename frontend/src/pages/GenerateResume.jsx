@@ -4,6 +4,7 @@ import axios from 'axios'
 import { toast } from 'react-hot-toast'
 import { AppContext } from '../context/ContextProvider'
 
+
 const GenerateResume = () => {
   const [formData, setFormData] = useState({
     prompt: '',
@@ -48,67 +49,10 @@ const GenerateResume = () => {
         return
       }
 
-      // Smart backend formatting - handle any user input format
-      const formatToBackend = (data) => {
-        // Helper function to split text intelligently
-        const smartSplit = (text, preferredSeparator = '\n') => {
-          if (!text || !text.trim()) return []
-          
-          // Check if text contains line breaks
-          if (text.includes('\n')) {
-            return text.split('\n').map(item => item.trim()).filter(item => item)
-          }
-          
-          // Check if text contains commas (for skills/languages)
-          if (text.includes(',')) {
-            return text.split(',').map(item => item.trim()).filter(item => item)
-          }
-          
-          // Check if text contains semicolons
-          if (text.includes(';')) {
-            return text.split(';').map(item => item.trim()).filter(item => item)
-          }
-          
-          // If no separators found, return as single item
-          return [text.trim()]
-        }
-
-        // Create projects objects from any text format
-        const createProjectObjects = (projectsText) => {
-          if (!projectsText || !projectsText.trim()) return []
-          
-          const projects = smartSplit(projectsText)
-          return projects.map(project => ({
-            name: project.split(':')[0]?.trim() || project.split('-')[0]?.trim() || project.trim(),
-            description: project.trim(),
-            url: null,
-            github: null,
-            link: null
-          }))
-        }
-
-        return {
-          prompt: data.prompt || '',
-          name: data.name || '',
-          email: data.email || '',
-          phone: data.phone || '',
-          skills: smartSplit(data.skills, ','),
-          education: data.education ? [data.education.trim()] : [],
-          experience: data.experience ? [data.experience.trim()] : [],
-          projects: createProjectObjects(data.projects),
-          achievements: smartSplit(data.achievements),
-          languages: smartSplit(data.languages, ','),
-          certificates: smartSplit(data.certificates)
-        }
-      }
-
-      const formattedData = formatToBackend(formData)
-      
-      console.log('Sending formatted data:', formattedData)
-
+      // Send raw data to backend - let Gemini AI handle the refinement
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/api/resume/generate`,
-        formattedData,
+        formData, // Send raw form data directly
         {
           withCredentials: true,
         }
@@ -196,14 +140,14 @@ const GenerateResume = () => {
               {/* Job Description/Prompt */}
               <div>
                 <label className="block text-sm font-medium text-[var(--color-base-content)] mb-2">
-                  Job Description / Prompt
+                  Job Description / Target Role
                 </label>
                 <textarea
                   name="prompt"
                   value={formData.prompt}
                   onChange={handleInputChange}
                   rows="4"
-                  placeholder="Paste the job description or describe the type of role you're applying for..."
+                  placeholder="Paste the job description you're applying for, or describe your target role (e.g., 'Full Stack Developer', 'Data Scientist', 'Product Manager'). This helps AI tailor your resume perfectly."
                   className="w-full px-4 py-3 rounded-xl bg-[var(--color-base-100)] text-[var(--color-base-content)] border border-[var(--color-base-300)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent resize-none"
                 />
               </div>
@@ -265,7 +209,7 @@ const GenerateResume = () => {
                   value={formData.skills}
                   onChange={handleInputChange}
                   rows="3"
-                  placeholder="List your technical and soft skills. You can separate them with commas, line breaks, or just write them naturally."
+                  placeholder="List your technical and soft skills. Examples: JavaScript, React, Node.js, Python, Team Leadership, Problem Solving, Communication. AI will organize and prioritize them based on your target role."
                   className="w-full px-4 py-3 rounded-xl bg-[var(--color-base-100)] text-[var(--color-base-content)] border border-[var(--color-base-300)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent resize-none"
                 />
               </div>
@@ -280,7 +224,7 @@ const GenerateResume = () => {
                   value={formData.education}
                   onChange={handleInputChange}
                   rows="3"
-                  placeholder="Tell us about your educational background. Include your degree, university, graduation year, and any relevant coursework or achievements."
+                  placeholder="Share your educational background. Include degrees, institutions, graduation years, relevant coursework, GPA if strong. Example: Bachelor of Science in Computer Science, XYZ University, 2020-2024, GPA: 3.8/4.0"
                   className="w-full px-4 py-3 rounded-xl bg-[var(--color-base-100)] text-[var(--color-base-content)] border border-[var(--color-base-300)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent resize-none"
                 />
               </div>
@@ -295,7 +239,7 @@ const GenerateResume = () => {
                   value={formData.experience}
                   onChange={handleInputChange}
                   rows="4"
-                  placeholder="Describe your work experience, including job titles, companies, dates, and key responsibilities or achievements. Write it naturally in your own words."
+                  placeholder="Describe your work experience, internships, part-time jobs. Include company names, positions, dates, and key accomplishments. Focus on quantifiable achievements and relevant responsibilities."
                   className="w-full px-4 py-3 rounded-xl bg-[var(--color-base-100)] text-[var(--color-base-content)] border border-[var(--color-base-300)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent resize-none"
                 />
               </div>
@@ -310,7 +254,7 @@ const GenerateResume = () => {
                   value={formData.projects}
                   onChange={handleInputChange}
                   rows="4"
-                  placeholder="List your notable projects. You can describe each project on a new line, or write them in a paragraph. Include technologies used and key features."
+                  placeholder="Highlight your best projects - personal, academic, or professional. Include project names, technologies used, brief descriptions, and links if available. Focus on projects relevant to your target role."
                   className="w-full px-4 py-3 rounded-xl bg-[var(--color-base-100)] text-[var(--color-base-content)] border border-[var(--color-base-300)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent resize-none"
                 />
               </div>
@@ -318,14 +262,14 @@ const GenerateResume = () => {
               {/* Achievements */}
               <div>
                 <label className="block text-sm font-medium text-[var(--color-base-content)] mb-2">
-                  Achievements
+                  Achievements & Awards
                 </label>
                 <textarea
                   name="achievements"
                   value={formData.achievements}
                   onChange={handleInputChange}
                   rows="3"
-                  placeholder="Share your accomplishments, awards, recognitions, or any notable achievements. Write them in any format you prefer."
+                  placeholder="List your notable achievements, awards, honors, scholarships, competition wins, publications, or recognition. Include dates and brief context where relevant."
                   className="w-full px-4 py-3 rounded-xl bg-[var(--color-base-100)] text-[var(--color-base-content)] border border-[var(--color-base-300)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent resize-none"
                 />
               </div>
@@ -340,7 +284,7 @@ const GenerateResume = () => {
                   name="languages"
                   value={formData.languages}
                   onChange={handleInputChange}
-                  placeholder="List the languages you speak and your proficiency level. Any format works."
+                  placeholder="List languages you speak and your proficiency level. Example: English (Native), Spanish (Fluent), French (Conversational), Mandarin (Basic)"
                   className="w-full px-4 py-3 rounded-xl bg-[var(--color-base-100)] text-[var(--color-base-content)] border border-[var(--color-base-300)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                 />
               </div>
@@ -348,14 +292,14 @@ const GenerateResume = () => {
               {/* Certificates */}
               <div>
                 <label className="block text-sm font-medium text-[var(--color-base-content)] mb-2">
-                  Certificates
+                  Certifications
                 </label>
                 <textarea
                   name="certificates"
                   value={formData.certificates}
                   onChange={handleInputChange}
                   rows="3"
-                  placeholder="List your certifications, licenses, or professional credentials. Include the issuing organization and year if available."
+                  placeholder="List relevant certifications, professional licenses, or completed courses. Include issuing organizations and dates. Example: AWS Certified Developer (2023), Google Analytics Certified (2024)"
                   className="w-full px-4 py-3 rounded-xl bg-[var(--color-base-100)] text-[var(--color-base-content)] border border-[var(--color-base-300)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent resize-none"
                 />
               </div>
@@ -457,6 +401,19 @@ const GenerateResume = () => {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Back to Home Link */}
+        <div className="text-center mt-8">
+          <Link
+            to="/"
+            className="inline-flex items-center text-[var(--color-primary)] hover:text-[var(--color-secondary)] transition-colors duration-300"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to Home
+          </Link>
         </div>
       </div>
     </div>

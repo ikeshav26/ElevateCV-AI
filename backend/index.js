@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import userRoutes from './src/routes/user.routes.js';
 import cookieParser from 'cookie-parser';
 import connectDB from './src/config/db.js';
+import resumeRoutes from './src/routes/resume.routes.js'
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ app.get('/', (req, res) => {
 
 
 app.use('/api/user',userRoutes)
+app.use('/api/resume',resumeRoutes)
 
 
 

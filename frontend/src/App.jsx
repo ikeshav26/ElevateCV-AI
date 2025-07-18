@@ -18,6 +18,7 @@ import GenerateResume from './pages/GenerateResume';
 import Resume from './pages/Resume';
 import GenerateLetter from './pages/GenerateLetter';
 import Letter from './pages/Letter';
+import GetQNA from './pages/GetQNA';
 
 const ProtectedRoute = ({ user, children }) => {
   if (!user) {
@@ -63,6 +64,10 @@ const App = () => {
 
         <Route path="/generate-letter" element={
           <ProtectedRoute user={user}><GenerateLetter /></ProtectedRoute>
+        } />
+
+        <Route path='/interview-prep' element={
+          <ProtectedRoute user={user}><GetQNA/></ProtectedRoute>
         } />
 
         <Route path="/letter/:id" element={

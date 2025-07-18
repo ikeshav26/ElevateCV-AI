@@ -15,6 +15,7 @@ const Home = () => {
   const features = [
     {
       icon: DocumentTextIcon,
+      path: '/generate-resume',
       title: 'AI-Powered Resume Builder',
       description:
         'Create professional resumes with our advanced AI technology that tailors content to your industry.',
@@ -22,6 +23,7 @@ const Home = () => {
     },
     {
       icon: EnvelopeIcon,
+      path: '/generate-letter',
       title: 'Smart Cover Letters',
       description:
         'Generate personalized cover letters that perfectly match job requirements and company culture.',
@@ -29,6 +31,7 @@ const Home = () => {
     },
     {
       icon: AcademicCapIcon,
+      path: '/interview-prep',
       title: 'Interview Preparation',
       description:
         'Practice with AI-powered mock interviews and get personalized feedback to ace your next interview.',
@@ -138,8 +141,8 @@ const Home = () => {
 
           <div className="grid md:grid-cols-3 gap-8">
             {features.map((feature, index) => (
+              <Link to={feature.path} key={index}>
               <div
-                key={index}
                 className="rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-105 cursor-pointer"
                 style={{ backgroundColor: 'var(--bg)' }}
               >
@@ -158,6 +161,7 @@ const Home = () => {
                   </div>
                 </div>
               </div>
+              </Link>
             ))}
           </div>
         </div>

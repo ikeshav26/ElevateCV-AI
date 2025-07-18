@@ -486,3 +486,62 @@ export const getLetter=async(req,res)=>{
         });
     }
 }
+
+
+export const deleteLetter=async(req,res)=>{
+    try{
+        const letterId=req.params.id;
+        const userId=req.user;
+        const letter=await Letter.findOneAndDelete({ userId, _id: letterId });
+        if(!letter){
+            return res.status(404).json({ message: "Letter not found" });
+        }
+        res.status(200).json({ message: "Letter deleted successfully" });
+    }catch(err){
+        console.error("Error in deleteLetter:", err);
+        res.status(500).json({
+            message: "Internal server error",
+            error: err.message || "Unknown error occurred"
+        });
+    }
+}
+
+
+
+export const exploreLetters=async(req,res)=>{
+    try{
+        const letters=await Letter.find({ isPublic: true }).sort({ createdAt: -1 });
+        res.status(200).json(letters);
+    }catch(err){
+        console.error("Error in exploreLetters:", err);
+        res.status(500).json({
+            message: "Internal server error",
+            error: err.message || "Unknown error occurred"
+        });
+    }
+}
+
+
+
+export const changeVisibility=async(req,res)=>{
+    try{
+        const letterId=req.params.id;
+        const userId=req.user;
+        const letter=await Letter.findOne({ userId, _id: letterId });
+        if(!letter){
+            return res.status(404).json({ message: "Letter not found" });
+        }
+        letter.isPublic = !letter.isPublic;
+        await letter.save();
+        res.status(200).json({
+            message: `Letter visibility changed to ${letter.isPublic ? "public" : "private"}`,
+            isPublic: letter.isPublic
+        }); 
+    }catch(err){
+        console.error("Error in changeVisibility:", err);
+        res.status(500).json({
+            message: "Internal server error",
+            error: err.message || "Unknown error occurred"
+        });
+    }
+}

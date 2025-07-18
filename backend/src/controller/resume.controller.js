@@ -159,17 +159,14 @@ export const changeVisibility=async(req,res)=>{
   try{
     const resumeId=req.params.id;
     const userId=req.user;
-    const { isPublic } = req.body;
-
-    const updatedResume=await Resume.findOneAndUpdate(
-      { _id: resumeId, userId },
-      { isPublic },
-      { new: true }
-    );
-    if(!updatedResume){
+    const resume=await Resume.findOne({ _id: resumeId, userId });
+    if(!resume){
       return res.status(404).json({ message: 'Resume not found or you do not have permission to change visibility' });
     }
-    res.status(200).json({ message: 'Resume visibility updated successfully', resume: updatedResume });
+    
+    resume.isPublic = !resume.isPublic;
+    await resume.save();
+    res.status(200).json({ message: 'Resume visibility updated successfully', resume });
   }catch(err){
     console.error('Error changing resume visibility:', err);
     res.status(500).json({ message: 'Internal server error', error: err.message || 'Unknown error occurred' });

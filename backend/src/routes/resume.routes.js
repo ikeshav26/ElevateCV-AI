@@ -11,7 +11,7 @@ router.get('/all',userAuth,getAllResumes)
 router.get('/explore',userAuth,exploreResumes)
 router.get('/:id',userAuth,getResume)
 router.delete('/delete/:id',userAuth,deleteResume)
-router.post('/visibility/:id',userAuth,changeVisibility)
+router.get('/visibility/:id',userAuth,changeVisibility)
 
 
 export default router;

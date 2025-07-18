@@ -10,4 +10,5 @@ router.post('/generate',userAuth,generate)
 
 
 
+
 export default router;

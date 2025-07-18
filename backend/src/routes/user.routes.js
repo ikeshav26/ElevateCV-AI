@@ -1,5 +1,6 @@
 import express from 'express';
 import { changeUsername, LoggedInUSer, login, logout, resetPassword, sendOtp, setAvatar, signup } from '../controller/user.controller.js';
+import { generateQNA } from '../controller/QNA.js';
 import {userAuth} from '../middlewares/user.auth.js'
 import dotenv from 'dotenv';
 dotenv.config();
@@ -15,6 +16,7 @@ router.post('/verify-otp',resetPassword)
 router.post('/add-avatar',userAuth,setAvatar)
 router.post('/change-username',userAuth,changeUsername)
 router.get('/me',userAuth,LoggedInUSer)
+
 
 
 

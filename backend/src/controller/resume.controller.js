@@ -1,6 +1,6 @@
 import cloudinary from "../config/cloudinary.js";
 import Resume from "../models/resume.model.js";
-import { generateResumeFromJobDescription } from "../utils/huggingface.js";
+import { generateResumeFromJobDescription } from "../utils/resume.js";
 import htmlPdf from 'html-pdf-node';
 
 export const generate = async (req, res) => {

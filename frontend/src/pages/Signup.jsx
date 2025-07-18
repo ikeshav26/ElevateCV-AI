@@ -18,7 +18,11 @@ const Signup = () => {
       password
     }
     console.log(formData);
-    const res=await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/user/signup`, formData);
+    const res=await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/user/signup`, formData,
+      {
+        withCredentials: true
+      }
+    );
     if (res.status === 201 || res.status === 200) {
       setuser(res.data.user);
       toast.success("Signup successful! Please log in.");

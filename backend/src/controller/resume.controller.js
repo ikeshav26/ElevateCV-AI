@@ -90,3 +90,32 @@ export const generate = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+
+
+export const getAllResumes=async(req,res)=>{
+  try{
+    const userId=req.user;
+    const resumes=await Resume.find({ userId }).sort({ createdAt: -1 });
+    res.status(200).json(resumes);
+  }catch(err){
+    console.error('Error fetching resumes:', err);
+    res.status(500).json({ message: 'Internal server error', error: err.message || 'Unknown error occurred' });
+  }
+}
+
+
+export const getResume=async(req,res)=>{
+  try{
+    const resumeId=req.params.id;
+    const resume=await Resume.findById(resumeId);
+    if(!resume){
+      return res.status(404).json({ message: 'Resume not found' });
+    }
+    res.status(200).json(resume);
+  }catch(err){
+    console.error('Error fetching resume:', err);
+    res.status(500).json({ message: 'Internal server error', error: err.message || 'Unknown error occurred' });
+  }
+}

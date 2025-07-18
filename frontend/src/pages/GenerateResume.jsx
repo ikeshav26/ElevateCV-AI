@@ -27,7 +27,7 @@ const GenerateResume = () => {
     const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: value 
     }))
   }
 
@@ -113,6 +113,23 @@ const GenerateResume = () => {
     setGeneratedResume(null)
   }
 
+  const handleFillSampleData = () => {
+    setFormData({
+      prompt: "I'm applying for a Senior Full Stack Developer position at a growing tech company. Looking for a role where I can lead development projects, work with modern JavaScript frameworks like React and Node.js, mentor junior developers, and contribute to architectural decisions for scalable web applications.",
+      name: "Alex Chen",
+      email: "alex.chen@email.com",
+      phone: "(555) 123-4567",
+      skills: "JavaScript, TypeScript, React, Node.js, Express, MongoDB, PostgreSQL, AWS, Docker, Git, Python, HTML, CSS, Tailwind CSS, REST APIs, GraphQL, Microservices, Agile Development, Team Leadership, Problem Solving, Code Review, Mentoring",
+      education: "Bachelor of Science in Computer Science\nStanford University\nGraduated: May 2020\nGPA: 3.7/4.0\nRelevant Coursework: Data Structures, Algorithms, Database Systems, Software Engineering, Web Development, Machine Learning",
+      experience: "Full Stack Developer at TechStart Inc.\nJune 2021 - Present\n- Developed and maintained 5+ web applications using React and Node.js serving over 10,000 users\n- Led a team of 3 junior developers and conducted weekly code reviews\n- Improved application performance by 40% through database optimization and caching strategies\n- Implemented CI/CD pipelines using GitHub Actions reducing deployment time by 60%\n- Collaborated with product managers and designers to deliver features on schedule\n\nJunior Developer at WebSolutions LLC\nJanuary 2021 - May 2021\n- Built responsive web interfaces using React and modern CSS frameworks\n- Integrated third-party APIs and payment gateways for e-commerce platforms\n- Participated in daily standups and sprint planning meetings\n- Wrote unit tests achieving 85% code coverage",
+      projects: "E-Commerce Platform \"ShopEasy\"\n- Developed a full-stack e-commerce platform with React frontend and Node.js backend\n- Implemented user authentication, product catalog, shopping cart, and payment processing using Stripe\n- Used MongoDB for data storage and Redis for session management and caching\n- Deployed on AWS EC2 with auto-scaling and load balancing\n- Achieved 99.9% uptime and handles 1000+ concurrent users\n- GitHub: github.com/alexchen/shopeasy\n\nReal-Time Chat Application \"ChatFlow\"\n- Built a real-time messaging app using React, Socket.io, and Node.js\n- Implemented features like private messaging, group chats, file sharing, and emoji reactions\n- Used JWT for authentication and bcrypt for password hashing\n- Integrated with AWS S3 for file storage\n- Supports 500+ simultaneous connections with sub-second message delivery",
+      achievements: "Employee of the Month - TechStart Inc. (March 2023, August 2023)\nFirst Place - University Hackathon 2020 (built COVID-19 tracking dashboard)\nDean's List - Fall 2018, Spring 2019, Fall 2019\nCompleted 30+ online courses on advanced JavaScript and cloud computing\nOpen Source Contributor - 15+ contributions to popular GitHub repositories\nMentor for 5+ junior developers through company mentorship program\nLed successful migration of legacy system to modern tech stack saving company $50K annually",
+      languages: "English (Native), Mandarin (Fluent), Spanish (Conversational), German (Basic)",
+      certificates: "AWS Certified Solutions Architect - Associate (Valid until Dec 2025)\nGoogle Cloud Professional Developer (Issued: Jan 2023)\nMongoDB Certified Developer Associate (Issued: Sep 2022)\nScrum Master Certification (PSM I) - Scrum.org (Issued: Jun 2023)\nFreeCodeCamp Full Stack Developer Certificate (Completed: Dec 2020)"
+    })
+    toast.success("Sample data filled! Edit as needed and generate your resume.")
+  }
+
   return (
     <div className="min-h-screen bg-[var(--color-base-100)] py-8 px-4 pt-24">
       <div className="max-w-7xl mx-auto">
@@ -126,6 +143,32 @@ const GenerateResume = () => {
           </p>
         </div>
 
+        {/* Help Section */}
+        <div className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] rounded-2xl shadow-xl p-6 mb-8">
+          <div className="flex flex-col md:flex-row items-center justify-between">
+            <div className="text-white mb-4 md:mb-0">
+              <h3 className="text-xl font-bold mb-2 flex items-center">
+                <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Need Help Getting Started?
+              </h3>
+              <p className="text-white opacity-90">
+                Not sure how to fill out the form? Try our sample data to see how it works!
+              </p>
+            </div>
+            <button
+              onClick={handleFillSampleData}
+              className="bg-white text-[var(--color-primary)] px-6 py-3 rounded-xl font-semibold hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+              Fill Sample Data
+            </button>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Form Section */}
           <div className="bg-[var(--color-base-200)] rounded-2xl shadow-xl p-8">
@@ -135,6 +178,22 @@ const GenerateResume = () => {
               </svg>
               Resume Information
             </h2>
+
+            {/* Quick Tips */}
+            <div className="bg-[var(--color-base-100)] rounded-xl p-4 mb-6 border border-[var(--color-base-300)]">
+              <h4 className="font-semibold text-[var(--color-base-content)] mb-2 flex items-center">
+                <svg className="w-5 h-5 mr-2 text-[var(--color-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                💡 Pro Tips
+              </h4>
+              <ul className="text-sm text-[var(--color-base-content)] opacity-80 space-y-1">
+                <li>• <strong>Write naturally:</strong> Use your own words - AI will make it professional</li>
+                <li>• <strong>Include numbers:</strong> "Led team of 5", "Improved performance by 40%"</li>
+                <li>• <strong>Be specific:</strong> Mention technologies, tools, and concrete achievements</li>
+                <li>• <strong>Use action words:</strong> "Developed", "Led", "Implemented", "Achieved"</li>
+              </ul>
+            </div>
             
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Job Description/Prompt */}
@@ -330,13 +389,23 @@ const GenerateResume = () => {
                 </button>
                 <button
                   type="button"
+                  onClick={handleFillSampleData}
+                  className="py-3 px-6 rounded-xl bg-[var(--color-secondary)] text-[var(--color-secondary-content)] font-semibold hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                  Try Sample
+                </button>
+                <button
+                  type="button"
                   onClick={handleReset}
                   className="py-3 px-6 rounded-xl bg-[var(--color-base-300)] text-[var(--color-base-content)] font-semibold hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center"
                 >
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
-                  Reset Form
+                  Clear Form
                 </button>
               </div>
             </form>

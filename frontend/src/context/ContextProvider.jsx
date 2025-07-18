@@ -1,32 +1,27 @@
-import { useState } from "react";
-import { createContext } from "react";
+import { useState, useEffect, createContext } from "react";
 import { useNavigate } from "react-router-dom";
 
+export const AppContext = createContext();
 
-export const AppContext=createContext()
+export const ContextProvider = ({ children }) => {
+  const [user, setuser] = useState(true);
+  const [loading, setloading] = useState(false);
+  const [theme, settheme] = useState(() => localStorage.getItem("theme") || "dark");
+  const navigate = useNavigate();
 
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
 
-export const ContextProvider=({children})=>{
-    const [user, setuser] = useState(false)
-    const [loading, setloading] = useState(false)
-    const [theme, settheme] = useState("dark")
-    const navigate=useNavigate();
-
-    const value={
-        user,
-        setuser,
-        loading,
-        setloading,
-        theme,
-        settheme,
-        navigate
-    }
-    return(
-        <AppContext.Provider value={value}>
-            {children}
-        </AppContext.Provider>
-    )
-}
-
-
-export default {AppContext,ContextProvider}
+  const value = {
+    user,
+    setuser,
+    loading,
+    setloading,
+    theme,
+    settheme,
+    navigate,
+  };
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+};

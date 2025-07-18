@@ -452,3 +452,37 @@ const generateFallbackCoverLetter = (prompt, userInfo = {}) => {
     note: "Fallback content generated when AI service is unavailable - no placeholders used"
   };
 };
+
+
+export const getAllLetters=async(req,res)=>{
+    try{
+        const  userId=req.user;
+        const Letters=await Letter.find({userId}).sort({createdAt: -1});
+        res.status(200).json(Letters);
+    }catch(err){
+        console.error("Error in getAllLetters:", err);
+        res.status(500).json({
+            message: "Internal server error",
+            error: err.message || "Unknown error occurred"
+        });
+    }
+}
+
+
+export const getLetter=async(req,res)=>{
+    try{
+        const letterId=req.params.id;
+        const userId=req.user;
+        const letter=await Letter.findOne({ userId, _id: letterId });
+        if(!letter){
+            return res.status(404).json({ message: "Letter not found" });
+        }
+        res.status(200).json(letter);
+    }catch(err){
+        console.error("Error in getLetter:", err);
+        res.status(500).json({
+            message: "Internal server error",
+            error: err.message || "Unknown error occurred"
+        });
+    }
+}

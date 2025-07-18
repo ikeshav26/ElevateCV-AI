@@ -51,6 +51,10 @@ const letterSchema=new mongoose.Schema({
     letterUrl:{
         type:String,
         required:true,
+    },
+    isPublic:{
+        type:Boolean,
+        default:true,
     }
 })
 

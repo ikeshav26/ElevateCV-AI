@@ -119,3 +119,37 @@ export const getResume=async(req,res)=>{
     res.status(500).json({ message: 'Internal server error', error: err.message || 'Unknown error occurred' });
   }
 }
+
+
+
+export const exploreResumes=async(req,res)=>{
+  try{
+    const resumes=await Resume.find().sort({ createdAt: -1 });
+    res.status(200).json(resumes);
+  }catch(err){
+    console.error('Error exploring resumes:', err);
+    res.status(500).json({ message: 'Internal server error', error: err.message || 'Unknown error occurred' });
+  }
+}
+
+
+export const deleteResume=async (req, res) => {
+  try{
+    const resumeId=req.params.id;
+    const resume=await Resume.findById(resumeId);
+    if(!resume){
+      return res.status(404).json({ message: 'Resume not found' });
+    }
+    // Delete resume from Cloudinary
+    if (resume.resumeUrl) {
+      const publicId = resume.resumeUrl.split('/').pop().split('.')[0];
+      await cloudinary.uploader.destroy(`resumes/${publicId}`, { resource_type: 'image' });
+    }
+    // Delete resume from database
+    await Resume.findByIdAndDelete(resumeId);
+    res.status(200).json({ message: 'Resume deleted successfully' });
+  }catch(err){
+    console.error('Error deleting resume:', err);
+    res.status(500).json({ message: 'Internal server error', error: err.message || 'Unknown error occurred' });
+  }
+}

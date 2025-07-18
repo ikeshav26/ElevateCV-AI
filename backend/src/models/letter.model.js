@@ -34,8 +34,8 @@ const letterSchema=new mongoose.Schema({
         type:String,
     },
     skills:{
-        type:Array,
-        default:[]
+        type:String,
+        default:""
     },
     createdAt:{
         type:Date,

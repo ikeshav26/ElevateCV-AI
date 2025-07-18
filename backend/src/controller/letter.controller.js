@@ -3,9 +3,9 @@ import { createCanvas } from "canvas";
 import cloudinary from "../config/cloudinary.js";
 import Letter from "../models/letter.model.js";
 
-export const generateCoverLetter = async (req, res) => {
+export const generate = async (req, res) => {
   try {
-    const userId = req.user; 
+    const userId = req.user;
     const {
       prompt,
       name,
@@ -25,7 +25,19 @@ export const generateCoverLetter = async (req, res) => {
       return res.status(400).json({ message: "Prompt is required" });
     }
 
-    // Generate letter content with AI
+    const requiredFields = [];
+    if (!name || name.trim() === "") requiredFields.push("name");
+    if (!email || email.trim() === "") requiredFields.push("email");
+    if (!jobTitle || jobTitle.trim() === "") requiredFields.push("jobTitle");
+    if (!company || company.trim() === "") requiredFields.push("company");
+
+    if (requiredFields.length > 0) {
+      return res.status(400).json({ 
+        message: `Missing required fields: ${requiredFields.join(", ")}. All fields are required to generate a complete cover letter without placeholders.`,
+        missingFields: requiredFields
+      });
+    }
+
     const letterData = await generateLetterFromPrompt(prompt, {
       name,
       email,
@@ -44,7 +56,6 @@ export const generateCoverLetter = async (req, res) => {
       return res.status(500).json({ message: "Failed to generate cover letter" });
     }
 
-    // Render the letter on canvas (image buffer)
     const canvasImage = await generateLetterCanvas(letterData, {
       name,
       email,
@@ -53,7 +64,6 @@ export const generateCoverLetter = async (req, res) => {
       companyAddress,
     });
 
-    // Upload image buffer to Cloudinary
     const uploadImage = () =>
       new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
@@ -68,7 +78,6 @@ export const generateCoverLetter = async (req, res) => {
 
     const uploadResultData = await uploadImage();
 
-    // Save letter record in DB
     const newLetter = new Letter({
       userId,
       name,
@@ -79,6 +88,7 @@ export const generateCoverLetter = async (req, res) => {
       description,
       experience,
       tone,
+      skills,
       letterUrl: uploadResultData.secure_url,
     });
 
@@ -111,47 +121,88 @@ export const generateLetterFromPrompt = async (prompt, userInfo = {}) => {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const enhancedPrompt = `
-You are a professional cover letter writer.
+You are a professional cover letter writer. Create a unique, personalized cover letter based on the user's specific information and request. 
 
-Write a complete, professional cover letter using only the information provided below. Do not ask for additional information or include placeholders.
+CRITICAL REQUIREMENTS:
+- NEVER use placeholders like [Your Name], [Company Name], [Position], etc.
+- NEVER use generic phrases like "your company", "this position", "the role"
+- ALWAYS use the EXACT information provided by the user
+- Write as if you ARE the person applying for the job
+- Make it sound natural and conversational, not robotic
 
-User Details:
-- Name: ${userInfo.name || "Applicant Name"}
-- Email: ${userInfo.email || "email@example.com"}
-- Phone: ${userInfo.phone || "Phone Number"}
-- Job Title: ${userInfo.jobTitle || "the position"}
-- Company: ${userInfo.company || "the company"}
-- Role Description: ${userInfo.description || ""}
-- Experience: ${userInfo.experience || ""}
+USER REQUEST: "${prompt}"
+
+ACTUAL USER INFORMATION (USE THESE EXACT DETAILS):
+- Applicant Name: ${userInfo.name}
+- Applying for Job: ${userInfo.jobTitle}
+- Target Company: ${userInfo.company}
 - Skills: ${userInfo.skills || ""}
+- Experience: ${userInfo.experience || ""}
+- Role Description: ${userInfo.description || ""}
 - Tone: ${userInfo.tone || "Professional"}
 
-The letter should include:
+INSTRUCTIONS:
+Write exactly 3 unique paragraphs for a cover letter. Use the EXACT names and details provided above.
 
-1. A professional header with the applicant’s contact info (name, email, phone).
-2. The current date.
-3. Recipient info: “Hiring Manager” and the company name.
-4. An engaging introduction stating interest in the job.
-5. Body paragraphs clearly explaining relevant experience, skills, and how the applicant adds value.
-6. A polite and confident closing paragraph with a call to action.
-7. A formal sign-off with the applicant’s name.
+Paragraph 1 (Opening): 
+- Express genuine interest in the ${userInfo.jobTitle} role at ${userInfo.company}
+- Mention what attracts you to ${userInfo.company} specifically
+- State your most relevant qualification using your actual experience/skills
 
-Make the letter concise (about 250-400 words), clear, and suitable to send without any further editing.
+Paragraph 2 (Body): 
+- Highlight your specific skills (${userInfo.skills || "relevant skills"}) and experiences
+- Provide concrete examples of achievements or projects
+- Show knowledge of ${userInfo.company} and how you can contribute
+- Be specific about the value you bring to ${userInfo.company}
+
+Paragraph 3 (Closing):
+- Reiterate enthusiasm for the ${userInfo.jobTitle} position at ${userInfo.company}
+- Mention next steps (interview, portfolio review, etc.)
+- Professional closing statement
+
+STRICT RULES:
+- Use "${userInfo.name}" as the applicant name (never "I" without context)
+- Use "${userInfo.jobTitle}" as the exact job title
+- Use "${userInfo.company}" as the exact company name
+- Write in ${userInfo.tone || "professional"} tone
+- Each paragraph should be 3-5 sentences long
+- Separate paragraphs with "###PARAGRAPH###"
+- Do NOT include header, date, or signature - only the 3 body paragraphs
+- Make it sound human and genuine, not templated
+- NO placeholders or generic terms allowed
+- Write as if you're the person applying, using first person perspective naturally
 `;
 
-    console.log("Calling Google AI API for cover letter...");
     const result = await model.generateContent(enhancedPrompt);
     const response = await result.response;
     const text = response.text();
-
-    console.log("Google AI API response received for cover letter");
 
     if (!text || text.trim().length === 0) {
       throw new Error("Empty response from Google AI");
     }
 
+    let paragraphs = text
+      .split("###PARAGRAPH###")
+      .map((p) => p.trim())
+      .filter(Boolean)
+      .map((p) => p.replace(/^(Paragraph \d+:|Opening:|Body:|Closing:)/i, '').trim());
+
+    paragraphs = paragraphs.map(p => 
+      p.replace(/\[.*?\]/g, '')
+        .replace(/\{.*?\}/g, '')
+        .replace(/your company/gi, userInfo.company)
+        .replace(/this position/gi, userInfo.jobTitle)
+        .replace(/the role/gi, `the ${userInfo.jobTitle} role`)
+        .replace(/your organization/gi, userInfo.company)
+        .trim()
+    );
+
+    if (paragraphs.length < 3) {
+      return generateFallbackCoverLetter(prompt, userInfo);
+    }
+
     return {
-      content: text,
+      paragraphs: paragraphs.slice(0, 3),
       source: "Google Gemini AI",
       generatedAt: new Date().toISOString(),
       prompt,
@@ -178,252 +229,147 @@ const generateLetterCanvas = async (letterData, userInfo = {}) => {
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext("2d");
 
-  // Clean white background
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, width, height);
 
-  // Professional black left border
-  ctx.fillStyle = "#000000";
-  ctx.fillRect(0, 0, 8, height);
-
-  // Margins
   const leftMargin = 80;
   const rightMargin = width - 80;
+  const topMargin = 80;
   const contentWidth = rightMargin - leftMargin;
 
-  let currentY = 80;
+  let currentY = topMargin;
 
-  // HEADER SECTION - Elegant Black & White Design
+  // Enhanced Header with elegant styling
   ctx.fillStyle = "#000000";
-  ctx.font = "bold 32px Arial";
+  ctx.font = "bold 28px Arial";
   ctx.textAlign = "left";
-  const userName = (userInfo.name || "Your Name").toUpperCase();
-  ctx.fillText(userName, leftMargin, currentY);
+  
+  const nameText = userInfo.name ? userInfo.name.toUpperCase() : "APPLICANT NAME";
+  ctx.fillText(nameText, leftMargin, currentY);
+  
+  // Stylish underline with gradient effect
+  const nameWidth = ctx.measureText(nameText).width;
+  ctx.fillRect(leftMargin, currentY + 8, nameWidth, 3);
+  ctx.fillStyle = "#333333";
+  ctx.fillRect(leftMargin, currentY + 11, nameWidth * 0.7, 1);
+  
+  currentY += 55;
 
-  // Elegant underline for name
-  currentY += 8;
+  // Contact Information with better spacing
+  ctx.font = "16px Arial";
   ctx.fillStyle = "#000000";
-  ctx.fillRect(leftMargin, currentY, userName.length * 16, 3);
+  
+  if (userInfo.email && userInfo.email.trim() !== "") {
+    ctx.fillText(`✉ ${userInfo.email}`, leftMargin, currentY);
+    currentY += 25;
+  }
+  
+  if (userInfo.phone && userInfo.phone.trim() !== "") {
+    ctx.fillText(`📞 ${userInfo.phone}`, leftMargin, currentY);
+    currentY += 25;
+  }
 
   currentY += 35;
 
-  // Contact information with professional layout
-  ctx.fillStyle = "#000000";
+  // Date with professional formatting
+  ctx.textAlign = "right";
   ctx.font = "14px Arial";
-  const contactInfo = [
-    userInfo.email || "your.email@example.com",
-    userInfo.phone || "Phone Number",
-  ].filter(Boolean);
-
-  contactInfo.forEach((info, index) => {
-    const itemX = leftMargin + (index * 300);
-    
-    // Create small icon circles for contact info
-    ctx.fillStyle = "#000000";
-    ctx.beginPath();
-    ctx.arc(itemX + 8, currentY, 6, 0, 2 * Math.PI);
-    ctx.fill();
-    
-    // Icon symbols
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 8px Arial";
-    ctx.textAlign = "center";
-    const icon = index === 0 ? "✉" : "☎";
-    ctx.fillText(icon, itemX + 8, currentY + 3);
-    
-    // Contact text
-    ctx.fillStyle = "#000000";
-    ctx.font = "12px Arial";
-    ctx.textAlign = "left";
-    ctx.fillText(info, itemX + 20, currentY + 4);
-  });
-
-  currentY += 50;
-
-  // Designer separator line
-  ctx.strokeStyle = "#000000";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(leftMargin, currentY);
-  ctx.lineTo(rightMargin, currentY);
-  ctx.stroke();
-
-  // Decorative elements
-  for (let i = 0; i < 5; i++) {
-    ctx.fillStyle = i % 2 === 0 ? "#000000" : "#ffffff";
-    ctx.strokeStyle = "#000000";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(leftMargin + (i * 15) + 8, currentY + 15, 3, 0, 2 * Math.PI);
-    ctx.fill();
-    ctx.stroke();
-  }
-
-  currentY += 50;
-
-  // Date with elegant formatting
-  ctx.fillStyle = "#000000";
-  ctx.font = "14px Arial";
-  ctx.textAlign = "left";
-  const today = new Date().toLocaleDateString("en-US", {
+  const dateText = new Date().toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
   });
-  ctx.fillText(today, leftMargin, currentY);
+  ctx.fillText(dateText, rightMargin, currentY);
+  
+  currentY += 55;
 
-  currentY += 50;
-
-  // Recipient section with professional styling
-  if (userInfo.company) {
-    ctx.fillStyle = "#000000";
-    ctx.font = "bold 14px Arial";
-    ctx.fillText("HIRING MANAGER", leftMargin, currentY);
-    currentY += 25;
-    
-    ctx.fillStyle = "#000000";
-    ctx.font = "16px Arial";
+  // Recipient section with enhanced styling
+  ctx.textAlign = "left";
+  ctx.font = "bold 18px Arial";
+  ctx.fillText("Hiring Manager", leftMargin, currentY);
+  currentY += 28;
+  
+  ctx.font = "16px Arial";
+  ctx.fillStyle = "#333333";
+  if (userInfo.company && userInfo.company.trim() !== "") {
     ctx.fillText(userInfo.company, leftMargin, currentY);
-    currentY += 25;
-    
-    // Small decorative line under company name
-    ctx.strokeStyle = "#000000";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(leftMargin, currentY);
-    ctx.lineTo(leftMargin + (userInfo.company || "Company").length * 8, currentY);
-    ctx.stroke();
-    
-    currentY += 40;
+    currentY += 24;
+  }
+  
+  if (userInfo.companyAddress && userInfo.companyAddress.trim() !== "") {
+    ctx.fillText(userInfo.companyAddress, leftMargin, currentY);
+    currentY += 24;
   }
 
-  // Letter content with professional typography
+  currentY += 40;
+
+  // Professional salutation
+  ctx.font = "16px Arial";
   ctx.fillStyle = "#000000";
-  ctx.font = "13px Arial";
+  ctx.fillText("Dear Hiring Manager,", leftMargin, currentY);
+  currentY += 45;
 
-  const letterContent = letterData.content || "";
+  // Enhanced body paragraphs with better typography
+  ctx.font = "15px Arial";
+  ctx.fillStyle = "#000000";
+  const lineHeight = 22;
+  const paragraphSpacing = 30;
 
-  // Clean content processing
-  let processedContent = letterContent.replace(/^[\s\S]*?Dear\s+/i, "Dear ");
+  const paragraphs = letterData.paragraphs || [];
 
-  // Split into paragraphs
-  const paragraphs = processedContent
-    .split("\n\n")
-    .filter(
-      (p) =>
-        p.trim().length > 0 &&
-        !p.match(/^\d{1,2}\/\d{1,2}\/\d{4}/) &&
-        !p.match(/^[A-Z\s]+$/) &&
-        !p.includes("@") &&
-        !p.match(/^\+?\d/) &&
-        p.trim().length > 10
-    );
+  paragraphs.forEach((paragraph, index) => {
+    if (currentY > height - 220) return;
 
-  // Process each paragraph with elegant formatting
-  paragraphs.forEach((paragraph, i) => {
-    if (currentY > height - 200) return;
+    let cleanParagraph = paragraph
+      .replace(/\[.*?\]/g, '')
+      .replace(/\{.*?\}/g, '')
+      .replace(/your company/gi, userInfo.company || 'the company')
+      .replace(/this position/gi, userInfo.jobTitle || 'this position')
+      .replace(/the role/gi, `the ${userInfo.jobTitle || 'role'}`)
+      .replace(/your organization/gi, userInfo.company || 'the organization')
+      .trim();
 
-    const trimmed = paragraph.trim();
-
-    // Special formatting for greeting
-    if (trimmed.startsWith("Dear")) {
-      ctx.fillStyle = "#000000";
-      ctx.font = "bold 14px Arial";
-      ctx.fillText(trimmed, leftMargin, currentY);
-      currentY += 35;
-      return;
-    }
-
-    // Special formatting for closing
-    if (
-      trimmed.toLowerCase().includes("sincerely") ||
-      trimmed.toLowerCase().includes("best regards") ||
-      trimmed.toLowerCase().includes("thank you for considering")
-    ) {
-      currentY += 25;
-    }
-
-    // Regular paragraph with justified text
-    ctx.fillStyle = "#000000";
-    ctx.font = "13px Arial";
-    const wrapped = wrapText(ctx, trimmed, contentWidth);
+    const lines = wrapText(ctx, cleanParagraph, contentWidth);
     
-    wrapped.forEach((line, lineIndex) => {
-      if (currentY > height - 200) return;
-      
-      // Add small bullet point for first line of each paragraph (except greeting/closing)
-      if (lineIndex === 0 && i > 0 && !trimmed.toLowerCase().includes("sincerely") && !trimmed.toLowerCase().includes("thank you")) {
-        ctx.fillStyle = "#000000";
-        ctx.beginPath();
-        ctx.arc(leftMargin + 5, currentY - 5, 2, 0, 2 * Math.PI);
-        ctx.fill();
-        ctx.fillText(line, leftMargin + 15, currentY);
-      } else {
-        ctx.fillText(line, leftMargin, currentY);
-      }
-      
-      currentY += 20;
+    lines.forEach((line, lineIndex) => {
+      if (currentY > height - 220) return;
+      ctx.fillText(line, leftMargin, currentY);
+      currentY += lineHeight;
     });
 
-    // Add paragraph spacing
-    if (i < paragraphs.length - 1) currentY += 15;
+    if (index < paragraphs.length - 1) {
+      currentY += paragraphSpacing;
+    }
   });
 
-  // Professional signature section
+  // Enhanced closing section
   currentY += 40;
-  if (currentY < height - 120) {
-    ctx.fillStyle = "#000000";
-    ctx.font = "14px Arial";
+  
+  if (currentY < height - 140) {
+    ctx.font = "16px Arial";
     ctx.fillText("Sincerely,", leftMargin, currentY);
+    currentY += 65;
     
-    currentY += 50;
-    
-    // Signature with elegant underline
-    ctx.fillStyle = "#000000";
-    ctx.font = "bold 16px Arial";
-    const signatureName = userInfo.name || "Your Name";
+    // Signature with elegant styling
+    ctx.font = "bold 18px Arial";
+    const signatureName = userInfo.name || "Applicant Name";
     ctx.fillText(signatureName, leftMargin, currentY);
     
     // Elegant signature underline
-    currentY += 5;
-    ctx.strokeStyle = "#000000";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(leftMargin, currentY);
-    ctx.lineTo(leftMargin + signatureName.length * 10, currentY);
-    ctx.stroke();
+    const sigWidth = ctx.measureText(signatureName).width;
+    ctx.fillStyle = "#666666";
+    ctx.fillRect(leftMargin, currentY + 8, sigWidth, 1);
   }
 
-  // Professional footer design
-  currentY = height - 80;
+  // Minimalist footer
+  const footerY = height - 40;
+  ctx.fillStyle = "#cccccc";
+  ctx.fillRect(leftMargin, footerY - 15, contentWidth, 1);
   
-  // Footer separator with decorative pattern
-  ctx.strokeStyle = "#000000";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(leftMargin, currentY);
-  ctx.lineTo(rightMargin, currentY);
-  ctx.stroke();
-
-  // Decorative footer elements
-  for (let i = 0; i < 8; i++) {
-    ctx.fillStyle = "#000000";
-    ctx.beginPath();
-    ctx.arc(leftMargin + (i * 25), currentY + 15, 2, 0, 2 * Math.PI);
-    ctx.fill();
-  }
-
-  currentY += 35;
-  
-  // Footer text
-  ctx.fillStyle = "#666666";
-  ctx.font = "11px Arial";
+  ctx.fillStyle = "#999999";
+  ctx.font = "10px Arial";
   ctx.textAlign = "center";
-  ctx.fillText(
-    "Generated by ElevateCV AI • Professional Cover Letter",
-    width / 2,
-    currentY
-  );
+  ctx.fillText("Generated by ElevateCV AI", width / 2, footerY);
 
   const buffer = canvas.toBuffer("image/png");
   const base64Image = buffer.toString("base64");
@@ -459,43 +405,50 @@ const wrapText = (ctx, text, maxWidth) => {
 };
 
 const generateFallbackCoverLetter = (prompt, userInfo = {}) => {
-  const fallbackContent = `
-${userInfo.name || "Your Name"}
-${userInfo.email || "your.email@example.com"}
-${userInfo.phone || "Your Phone Number"}
+  const currentDate = new Date();
+  const uniqueId = Math.random().toString(36).substring(2, 15);
+  
+  const applicantName = userInfo.name || "the applicant";
+  const targetCompany = userInfo.company || "the organization";
+  const targetPosition = userInfo.jobTitle || "the position";
+  const applicantSkills = userInfo.skills || "relevant professional skills";
+  const applicantExperience = userInfo.experience || "professional experience";
+  
+  const paragraph1 = `I am writing to express my strong interest in the ${targetPosition} role at ${targetCompany}. ${
+    userInfo.experience 
+      ? `With my background in ${applicantExperience}, I am` 
+      : "I am"
+  } excited about the opportunity to contribute to ${targetCompany}'s continued success. ${
+    userInfo.skills 
+      ? `My expertise in ${applicantSkills} aligns perfectly with the requirements of the ${targetPosition} position.`
+      : `I believe my skills and enthusiasm make me an ideal candidate for the ${targetPosition} role.`
+  }`;
 
-${new Date().toLocaleDateString("en-US", {
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-})}
+  const paragraph2 = `Throughout my career, I have developed ${
+    userInfo.skills 
+      ? `strong capabilities in ${applicantSkills}` 
+      : "valuable professional skills"
+  } that would directly benefit ${targetCompany}. ${
+    userInfo.experience 
+      ? `My experience in ${applicantExperience} has taught me the importance of` 
+      : "I have learned the value of"
+  } collaboration, innovation, and delivering high-quality results that drive business objectives. ${
+    userInfo.description 
+      ? `I am particularly drawn to the ${targetPosition} role because ${userInfo.description.toLowerCase()}.`
+      : `I am committed to bringing my best efforts to the ${targetPosition} position at ${targetCompany}.`
+  }`;
 
-Hiring Manager
-${userInfo.company || "Company Name"}
-
-Dear Hiring Manager,
-
-I am writing to express my strong interest in the ${
-    userInfo.jobTitle || "position"
-  } role at ${userInfo.company || "your company"}. Based on my experience in ${
-    userInfo.experience || "the relevant field"
-  } and skills in ${userInfo.skills || "key areas"}, I am confident that I would be a valuable addition to your team.
-
-I have demonstrated strong problem-solving skills, a commitment to quality, and the ability to work effectively both independently and as part of a team.
-
-Thank you for considering my application. I look forward to the opportunity to discuss how I can contribute to ${userInfo.company || "your company"}.
-
-Sincerely,
-${userInfo.name || "Your Name"}
-
-Note: This is a fallback template cover letter generated automatically.
-`;
+  const paragraph3 = `Thank you for considering my application for the ${targetPosition} position at ${targetCompany}. I would welcome the opportunity to discuss how my ${
+    userInfo.skills ? `skills in ${applicantSkills}` : "qualifications and experience"
+  } can contribute to ${targetCompany}'s team objectives. I look forward to hearing from you soon and am available for an interview at your convenience.`;
 
   return {
-    content: fallbackContent,
-    source: "Template Generator",
-    generatedAt: new Date().toISOString(),
+    paragraphs: [paragraph1, paragraph2, paragraph3],
+    source: "Enhanced Template Generator",
+    generatedAt: currentDate.toISOString(),
+    uniqueId,
     prompt,
     userInfo,
+    note: "Fallback content generated when AI service is unavailable - no placeholders used"
   };
 };

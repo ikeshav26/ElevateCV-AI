@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 import connectDB from './src/config/db.js';
 import qnaRoutes from './src/routes/QNA.routes.js';
 import resumeRoutes from './src/routes/resume.routes.js'
+import letterRoutes from './src/routes/letter.routes.js';
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ app.get('/', (req, res) => {
 app.use('/api/user',userRoutes)
 app.use('/api/resume',resumeRoutes)
 app.use('/api/qna',qnaRoutes)
+app.use('/api/letter',letterRoutes)
 
 
 

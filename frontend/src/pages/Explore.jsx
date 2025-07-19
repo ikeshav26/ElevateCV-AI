@@ -5,7 +5,7 @@ import { toast } from 'react-hot-toast'
 import { AppContext } from '../context/ContextProvider'
 
 const Explore = () => {
-  const { user } = useContext(AppContext)
+  const { user,setuser } = useContext(AppContext)
   const [activeTab, setActiveTab] = useState('resumes')
   const [resumes, setResumes] = useState([])
   const [coverLetters, setCoverLetters] = useState([])
@@ -29,8 +29,15 @@ const Explore = () => {
         setResumes([]);
       }
     } catch (error) {
-      toast.error('Failed to load resumes');
-      setResumes([]);
+      if (
+        error.message === "Unauthorized" ||
+        error.response?.status === 401 ||
+        error.response?.data?.message === "Unauthorized"
+      ) {
+        if (typeof setuser === 'function') setuser(false);
+      } else {
+        toast.error('Failed to load resumes');
+      }
     } finally {
       setLoading(false);
     }
@@ -53,8 +60,15 @@ const Explore = () => {
         setCoverLetters([]);
       }
     } catch (error) {
-      toast.error('Failed to load cover letters');
-      setCoverLetters([]);
+      if (
+        error.message === "Unauthorized" ||
+        error.response?.status === 401 ||
+        error.response?.data?.message === "Unauthorized"
+      ) {
+        if (typeof setuser === 'function') setuser(false);
+      } else {
+        toast.error('Failed to load cover letters');
+      }
     } finally {
       setLoading(false);
     }

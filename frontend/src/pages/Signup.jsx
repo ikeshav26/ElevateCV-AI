@@ -9,7 +9,7 @@ const Signup = () => {
   const [email, setemail] = useState("")
   const [password, setpassword] = useState("")
   const [loading, setLoading] = useState(false)
-  const { setuser, navigate } = useContext(AppContext)
+  const { setuser, navigate,user } = useContext(AppContext)
 
   const handleSubmit = async (e) => {
     e.preventDefault()

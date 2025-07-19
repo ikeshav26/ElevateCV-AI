@@ -5,7 +5,7 @@ import { toast } from 'react-hot-toast'
 import { AppContext } from '../context/ContextProvider'
 
 const GenerateLetter = () => {
-  const { user } = useContext(AppContext)
+  const { user, setuser } = useContext(AppContext)
   const [formData, setFormData] = useState({
     prompt: '',
     companyName: '',
@@ -167,7 +167,9 @@ const GenerateLetter = () => {
       }
     } catch (error) {
       console.error('Cover letter generation error:', error)
-      
+      if (error.response?.data?.message === 'Unauthorized') {
+        if (typeof setuser === 'function') setuser(false);
+      }
       if (error.response) {
         // Server responded with error status
         const errorMessage = error.response.data?.message || error.response.data?.error || "Server error occurred"

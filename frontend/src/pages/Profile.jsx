@@ -23,6 +23,9 @@ const Profile = () => {
         setAvatar(userRes.data.user.avatar);
         await Promise.all([fetchResumes(), fetchLetters()]);
       } catch (err) {
+        if (err?.response?.data?.message === 'Unauthorized') {
+          if (typeof setuser === 'function') setuser(false);
+        }
         toast.error('Failed to fetch profile data');
         console.error(err);
       }
@@ -37,7 +40,10 @@ const Profile = () => {
         withCredentials: true,
       });
       setResumes(res.data || []);
-    } catch {
+    } catch (err) {
+      if (err?.response?.data?.message === 'Unauthorized') {
+        if (typeof setuser === 'function') setuser(false);
+      }
       toast.error('Failed to load resumes');
     }
   };
@@ -48,7 +54,10 @@ const Profile = () => {
         withCredentials: true,
       });
       setLetters(res.data || []);
-    } catch {
+    } catch (err) {
+      if (err?.response?.data?.message === 'Unauthorized') {
+        if (typeof setuser === 'function') setuser(false);
+      }
       toast.error('Failed to load letters');
     }
   };

@@ -22,13 +22,15 @@ import { AppContext } from '../context/ContextProvider'
 import toast from 'react-hot-toast'
 import axios from 'axios'
 
+
 const Navbar = () => {
-  const { theme, settheme, user, setuser, navigate } = useContext(AppContext)
+  const { theme, settheme, user, setuser, navigate,token } = useContext(AppContext)
 
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false)
   const [clickedThemeToggle, setClickedThemeToggle] = useState(false)
   const dropdownRef = useRef(null)
+
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -40,20 +42,25 @@ const Navbar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+
+
   const handleLogout =async () => {
     try{
       const res=await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/user/logout`, { withCredentials: true })
       if (res.status === 200 || res.status === 201) {
         setuser(false)
+        localStorage.removeItem('user')
         setIsProfileDropdownOpen(false)
         setIsMenuOpen(false)
         navigate('/')
+        toast.success('Logout successful')
       }
     }catch (error) {
       toast.error('Logout failed. Please try again.')
       console.error('Logout error:', error)
     }
   }
+
 
   const isActive = (path) => window.location.pathname === path
 

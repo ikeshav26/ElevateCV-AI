@@ -21,7 +21,7 @@ const GenerateResume = () => {
   })
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedResume, setGeneratedResume] = useState(null)
-  const { navigate } = useContext(AppContext)
+  const { navigate ,setuser} = useContext(AppContext)
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -65,8 +65,16 @@ const GenerateResume = () => {
         toast.error("Failed to generate resume")
       }
     } catch (error) {
-      console.error('Resume generation error:', error)
-      toast.error(error.response?.data?.message || "Failed to generate resume")
+      if (
+        error.message === "Unauthorized" ||
+        error.response?.status === 401 ||
+        error.response?.data?.message === "Unauthorized"
+      ) {
+        if (typeof setuser === 'function') setuser(false);
+      } else {
+        console.error('Resume generation error:', error)
+        toast.error(error.response?.data?.message || "Failed to generate resume")
+      }
     } finally {
       setIsGenerating(false)
     }

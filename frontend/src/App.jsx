@@ -32,6 +32,7 @@ const App = () => {
 
   const hideHeaderFooter = ['/login', '/signup', '/reset-password'].includes(location.pathname);
 
+
   return (
     <>
       {!hideHeaderFooter && <Navbar />}

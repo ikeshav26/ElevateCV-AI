@@ -8,37 +8,46 @@ const Signup = () => {
   const [username, setusername] = useState("")
   const [email, setemail] = useState("")
   const [password, setpassword] = useState("")
-  const {setuser,navigate}=useContext(AppContext)
+  const [loading, setLoading] = useState(false)
+  const { setuser, navigate } = useContext(AppContext)
 
-  const handleSubmit=async(e)=>{
-    e.preventDefault();
-    const formData={
-      username,
-      email,
-      password
-    }
-    console.log(formData);
-    const res=await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/user/signup`, formData,
-      {
-        withCredentials: true
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    const formData = { username, email, password }
+
+    try {
+      const res = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/user/signup`,
+        formData,
+        { withCredentials: true }
+      )
+
+      if (res.status === 201 || res.status === 200) {
+        setuser(true)
+        localStorage.setItem('user', JSON.stringify(res.data.user))
+        toast.success("Signup successful! Please log in.")
+        navigate("/")
+      } else {
+        toast.error("Signup failed. Please try again.")
+        setusername("")
+        setemail("")
+        setpassword("")
       }
-    );
-    if (res.status === 201 || res.status === 200) {
-      setuser(true);
-      localStorage.setItem('user', JSON.stringify(res.data.user));
-      toast.success("Signup successful! Please log in.");
-      navigate("/");
-    } else {
-      toast.error("Signup failed. Please try again.");
-      setusername("");
-      setemail("");
-      setpassword("");
+    } catch (err) {
+      toast.error("Signup failed. Please try again.")
+      setusername("")
+      setemail("")
+      setpassword("")
+    } finally {
+      setLoading(false)
     }
   }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-[var(--color-base-100)] px-4 py-8">
       <div className="w-full max-w-5xl bg-[var(--color-base-200)] rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row transform hover:scale-[1.01] transition-transform duration-300">
-        {/* Image Section - Hidden on small screens */}
+        {/* Image Section */}
         <div className="hidden md:block md:w-1/2 bg-gradient-to-tr from-[var(--color-primary)] to-[var(--color-primary-dark)] relative">
           <img
             src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=600&fit=crop&crop=center"
@@ -80,8 +89,7 @@ const Signup = () => {
               Join thousands of professionals using AI to elevate their careers
             </p>
           </div>
-          
-          {/* Email Disclaimer */}
+
           <div className="mb-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
             <div className="flex items-center mb-2">
               <div className="w-6 h-6 bg-amber-100 dark:bg-amber-800 rounded-full flex items-center justify-center mr-3">
@@ -180,20 +188,46 @@ const Signup = () => {
 
             <button
               type="submit"
-              className="w-full py-3 mt-6 rounded-xl bg-[var(--color-primary)] text-[var(--color-primary-content)] font-semibold hover:scale-105 active:scale-95 cursor-pointer transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center"
+              disabled={loading}
+              className={`w-full py-3 mt-6 rounded-xl bg-[var(--color-primary)] text-[var(--color-primary-content)] font-semibold hover:scale-105 active:scale-95 cursor-pointer transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center ${
+                loading ? "opacity-70 cursor-not-allowed" : ""
+              }`}
             >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-              </svg>
-              Create Account
+              {loading ? (
+                <svg
+                  className="animate-spin h-5 w-5 mr-3 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  ></path>
+                </svg>
+              ) : (
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+              )}
+              {loading ? "Creating Account..." : "Create Account"}
             </button>
           </form>
 
           <div className="text-center mt-6">
             <p className="text-[var(--color-base-content)] opacity-70 select-none">
               Already have an account?{' '}
-              <Link 
-                to="/login" 
+              <Link
+                to="/login"
                 className="text-[var(--color-primary)] font-semibold hover:underline transition-all duration-200 hover:scale-105 inline-block"
               >
                 Sign in here

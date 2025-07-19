@@ -15,9 +15,7 @@ import ResetPassword from './pages/ResetPassword';
 import Profile from './pages/Profile';
 import Explore from './pages/Explore';
 import GenerateResume from './pages/GenerateResume';
-import Resume from './pages/Resume';
 import GenerateLetter from './pages/GenerateLetter';
-import Letter from './pages/Letter';
 import GetQNA from './pages/GetQNA';
 
 const ProtectedRoute = ({ user, children }) => {
@@ -58,10 +56,6 @@ const App = () => {
           <ProtectedRoute user={user}><GenerateResume /></ProtectedRoute>
         } />
 
-        <Route path="/resume/:id" element={
-          <ProtectedRoute user={user}><Resume /></ProtectedRoute>
-        } />
-
         <Route path="/generate-letter" element={
           <ProtectedRoute user={user}><GenerateLetter /></ProtectedRoute>
         } />
@@ -70,9 +64,6 @@ const App = () => {
           <ProtectedRoute user={user}><GetQNA/></ProtectedRoute>
         } />
 
-        <Route path="/letter/:id" element={
-          <ProtectedRoute user={user}><Letter /></ProtectedRoute>
-        } />
       </Routes>
 
       {!hideHeaderFooter && <Footer />}

@@ -1,13 +1,12 @@
 import { createCanvas } from 'canvas';
-import { CanvasRenderingContext2D } from 'canvas';
 import axios from 'axios';
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// AI-POWERED DATA REFINEMENT FUNCTION
+// AI-powered data refinement function
 const refineUserDataWithAI = async (rawUserData) => {
   try {
     const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
     const refinementPrompt = `
 You are a professional resume AI assistant and career expert. I will provide you with raw user data in various formats. Your task is to intelligently process, clean, and structure this data into a professional, ATS-friendly resume format with proper definitions and enhanced descriptions.
@@ -63,7 +62,6 @@ Please process this data and return a structured JSON response with the followin
     {"name": "full certification name", "issuer": "issuing organization", "date": "issue date", "expiry": "expiry date if applicable", "credential_id": "if provided", "description": "brief description of certification value"}
   ],
   "summary": "generate a compelling 4-5 sentence professional summary that highlights key strengths, quantified achievements, and alignment with target role. Use industry keywords and action-oriented language."
-}
 
 Rules for processing:
 1. Clean and standardize all text (proper capitalization, grammar, etc.)
@@ -86,12 +84,9 @@ Return only the JSON response, no additional text.
 
     // Clean the response text to extract only JSON
     let cleanedResponse = refinedDataText.trim();
-    
-    // Remove markdown code blocks if present
     cleanedResponse = cleanedResponse.replace(/```json\n?/, '');
     cleanedResponse = cleanedResponse.replace(/```\n?$/, '');
-    
-    // Parse the AI response
+
     try {
       const refinedData = JSON.parse(cleanedResponse);
       console.log('AI data refinement successful');
@@ -99,19 +94,16 @@ Return only the JSON response, no additional text.
     } catch (parseError) {
       console.error('Failed to parse AI response:', parseError);
       console.error('Raw AI response:', refinedDataText);
-      // Return structured fallback data
       return createFallbackStructuredData(rawUserData);
     }
-
   } catch (error) {
     console.error('AI data refinement failed:', error);
-    // Return structured fallback data
     return createFallbackStructuredData(rawUserData);
   }
 };
 
 // Fallback function to create structured data when AI fails
-const createFallbackStructuredData = (rawUserData) => {
+function createFallbackStructuredData(rawUserData) {
   return {
     name: rawUserData.name || 'Your Name',
     email: rawUserData.email || 'your.email@example.com',
@@ -127,7 +119,7 @@ const createFallbackStructuredData = (rawUserData) => {
     certifications: rawUserData.certificates ? parseCertificationsFromText(rawUserData.certificates) : [],
     summary: generateFallbackSummary(rawUserData)
   };
-};
+}
 
 // Helper functions for fallback parsing
 const extractTitleFromPrompt = (prompt) => {
@@ -143,20 +135,17 @@ const extractTitleFromPrompt = (prompt) => {
 
 const parseSkillsFromText = (skillsText) => {
   if (!skillsText || typeof skillsText !== 'string') return [];
-  
   return skillsText.split(/[,\n;]/).map(skill => ({
     name: skill.trim(),
     category: 'technical',
     level: 'intermediate'
-  })).filter(skill => skill.name && skill.name.length > 0);
+  })).filter(skill => skill.name.length > 0);
 };
 
 const parseEducationFromText = (educationText) => {
   if (!educationText || typeof educationText !== 'string') return [];
-  
   const lines = educationText.split('\n').filter(line => line.trim());
   if (lines.length === 0) return [];
-  
   return [{
     degree: lines[0] || 'Degree',
     institution: lines[1] || 'Institution',
@@ -168,7 +157,6 @@ const parseEducationFromText = (educationText) => {
 
 const parseExperienceFromText = (experienceText) => {
   if (!experienceText || typeof experienceText !== 'string') return [];
-  
   return [{
     position: 'Position',
     company: 'Company',
@@ -180,7 +168,6 @@ const parseExperienceFromText = (experienceText) => {
 
 const parseProjectsFromText = (projectsText) => {
   if (!projectsText || typeof projectsText !== 'string') return [];
-  
   return projectsText.split('\n').filter(p => p.trim()).slice(0, 5).map(project => ({
     name: project.substring(0, 50).trim() || 'Project',
     description: project.substring(0, 150).trim() || 'Project description',
@@ -191,7 +178,6 @@ const parseProjectsFromText = (projectsText) => {
 
 const parseAchievementsFromText = (achievementsText) => {
   if (!achievementsText || typeof achievementsText !== 'string') return [];
-  
   return achievementsText.split('\n').filter(a => a.trim()).slice(0, 5).map(achievement => ({
     title: achievement.substring(0, 50).trim() || 'Achievement',
     description: achievement.substring(0, 100).trim() || 'Achievement description',
@@ -201,16 +187,14 @@ const parseAchievementsFromText = (achievementsText) => {
 
 const parseLanguagesFromText = (languagesText) => {
   if (!languagesText || typeof languagesText !== 'string') return [];
-  
   return languagesText.split(/[,\n;]/).map(lang => ({
     name: lang.trim(),
     level: 'Conversational'
-  })).filter(lang => lang.name && lang.name.length > 0);
+  })).filter(lang => lang.name.length > 0);
 };
 
 const parseCertificationsFromText = (certificatesText) => {
   if (!certificatesText || typeof certificatesText !== 'string') return [];
-  
   return certificatesText.split('\n').filter(c => c.trim()).slice(0, 5).map(cert => ({
     name: cert.substring(0, 50).trim() || 'Certification',
     issuer: 'Issuing Organization',
@@ -219,13 +203,12 @@ const parseCertificationsFromText = (certificatesText) => {
 };
 
 const generateFallbackSummary = (rawUserData) => {
-  const name = rawUserData.name || 'Professional';
   const title = rawUserData.prompt ? extractTitleFromPrompt(rawUserData.prompt) : 'Professional';
   return `Experienced ${title} with a strong background in technology and professional development. Skilled in multiple areas with a proven track record of delivering results. Passionate about continuous learning and contributing to team success.`;
 };
 
-// Text wrapping utility function
-const wrapText = (ctx, text, maxWidth, fontSize = 12) => {
+// Text wrapping utility
+const wrapText = (ctx, text, maxWidth, fontSize = 10) => {
   const words = text.split(' ');
   const lines = [];
   let currentLine = '';
@@ -248,46 +231,307 @@ const wrapText = (ctx, text, maxWidth, fontSize = 12) => {
   return lines;
 };
 
-// Professional Canvas Generation Function - Black & White Design
-const generateResumeImageCanvas = async (userData) => {
+// Helper to check if data has content
+const hasContent = (data) => {
+  if (!data) return false;
+  if (Array.isArray(data)) return data.length > 0;
+  if (typeof data === 'string') return data.trim().length > 0;
+  if (typeof data === 'object') return Object.keys(data).length > 0;
+  return Boolean(data);
+};
+
+// Generate resume canvas image with dynamic sections
+async function generateResumeImageCanvas(userData) {
   const width = 900;
   const height = 1200;
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext('2d');
-
-  // Professional white background
+  // Set background to white
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, width, height);
-
-  // Professional margins
-  const leftMargin = 60;
-  const rightMargin = width - 60;
+  const leftMargin = 50;
+  const rightMargin = width - 50;
   const contentWidth = rightMargin - leftMargin;
-  
-  let currentY = 50;
+  let currentY = 40;
 
-  // HEADER SECTION - Professional Black & White Design
+  const sections = [
+    {
+      key: 'summary',
+      render: () => {
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 16px Arial';
+        ctx.fillText('PROFESSIONAL SUMMARY', leftMargin, currentY);
+        currentY += 22;
+        ctx.fillStyle = '#000000';
+        ctx.font = '13px Arial';
+        const summaryLines = wrapText(ctx, userData.summary, contentWidth - 20, 13);
+        for (const line of summaryLines) {
+          ctx.fillText(line, leftMargin, currentY);
+          currentY += 18;
+        }
+        currentY += 10;
+      },
+      check: () => hasContent(userData.summary)
+    },
+    {
+      key: 'skills',
+      render: () => {
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 16px Arial';
+        ctx.fillText('CORE COMPETENCIES', leftMargin, currentY);
+        currentY += 22;
+        ctx.fillStyle = '#000000';
+        ctx.font = '13px Arial';
+        const skillCategories = {};
+        userData.skills.forEach(skill => {
+          const category = skill.category || 'Technical';
+          if (!skillCategories[category]) skillCategories[category] = [];
+          skillCategories[category].push(skill.name);
+        });
+        Object.keys(skillCategories).forEach(category => {
+          ctx.fillStyle = '#666666';
+          ctx.font = 'bold 12px Arial';
+          ctx.fillText(`${category.toUpperCase()}:`, leftMargin, currentY);
+          ctx.fillStyle = '#000000';
+          ctx.font = '13px Arial';
+          const skillsText = skillCategories[category].join(' • ');
+          const skillLines = wrapText(ctx, skillsText, contentWidth - 100, 13);
+          skillLines.forEach((line, index) => {
+            ctx.fillText(line, leftMargin + 100, currentY + (index * 16));
+          });
+          currentY += skillLines.length * 16 + 10;
+        });
+        currentY += 10;
+      },
+      check: () => hasContent(userData.skills)
+    },
+    {
+      key: 'experience',
+      render: () => {
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 16px Arial';
+        ctx.fillText('PROFESSIONAL EXPERIENCE', leftMargin, currentY);
+        currentY += 22;
+        userData.experience.forEach(exp => {
+          if (currentY > height - 150) return;
+          ctx.fillStyle = '#000000';
+          ctx.font = 'bold 14px Arial';
+          ctx.fillText(exp.position || 'Position', leftMargin, currentY);
+          ctx.textAlign = 'right';
+          ctx.fillStyle = '#000000';
+          ctx.font = '13px Arial';
+          ctx.fillText(exp.duration || 'Duration', rightMargin, currentY);
+          ctx.textAlign = 'left';
+          currentY += 18;
+          ctx.fillStyle = '#333333';
+          ctx.font = '13px Arial';
+          ctx.fillText(exp.company || 'Company', leftMargin, currentY);
+          currentY += 18;
+          if (hasContent(exp.description)) {
+            ctx.fillStyle = '#444444';
+            ctx.font = '12px Arial';
+            const descLines = wrapText(ctx, exp.description, contentWidth - 20, 12);
+            for (const line of descLines) {
+              ctx.fillText(line, leftMargin, currentY);
+              currentY += 15;
+            }
+          }
+          if (hasContent(exp.achievements)) {
+            currentY += 5;
+            exp.achievements.forEach(achievement => {
+              ctx.fillStyle = '#333333';
+              ctx.font = '12px Arial';
+              ctx.fillText('• ' + achievement, leftMargin + 10, currentY);
+              currentY += 15;
+            });
+          }
+          if (hasContent(exp.technologies)) {
+            currentY += 5;
+            ctx.fillStyle = '#666666';
+            ctx.font = 'italic 11px Arial';
+            const techText = 'Technologies: ' + exp.technologies.join(', ');
+            const techLines = wrapText(ctx, techText, contentWidth - 20, 11);
+            for (const line of techLines) {
+              ctx.fillText(line, leftMargin, currentY);
+              currentY += 13;
+            }
+          }
+          currentY += 15;
+        });
+      },
+      check: () => hasContent(userData.experience)
+    },
+    {
+      key: 'education',
+      render: () => {
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 16px Arial';
+        ctx.fillText('EDUCATION', leftMargin, currentY);
+        currentY += 22;
+        userData.education.forEach(edu => {
+          if (currentY > height - 100) return;
+          ctx.fillStyle = '#000000';
+          ctx.font = 'bold 14px Arial';
+          ctx.fillText(edu.degree || 'Degree', leftMargin, currentY);
+          ctx.textAlign = 'right';
+          ctx.fillStyle = '#000000';
+          ctx.font = '13px Arial';
+          ctx.fillText(edu.year || 'Year', rightMargin, currentY);
+          ctx.textAlign = 'left';
+          currentY += 18;
+          ctx.fillStyle = '#333333';
+          ctx.font = '13px Arial';
+          ctx.fillText(edu.institution || 'Institution', leftMargin, currentY);
+          if (hasContent(edu.field) || hasContent(edu.gpa)) {
+            currentY += 15;
+            ctx.fillStyle = '#666666';
+            ctx.font = '12px Arial';
+            let eduDetails = '';
+            if (edu.field) eduDetails += edu.field;
+            if (edu.gpa) eduDetails += ` | GPA: ${edu.gpa}`;
+            ctx.fillText(eduDetails, leftMargin, currentY);
+          }
+          currentY += 25;
+        });
+      },
+      check: () => hasContent(userData.education)
+    },
+    {
+      key: 'projects',
+      render: () => {
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 16px Arial';
+        ctx.fillText('PROJECTS', leftMargin, currentY);
+        currentY += 22;
+        userData.projects.forEach(proj => {
+          if (currentY > height - 100) return;
+          ctx.fillStyle = '#000000';
+          ctx.font = 'bold 14px Arial';
+          ctx.fillText(proj.name || 'Project Name', leftMargin, currentY);
+          ctx.textAlign = 'right';
+          ctx.fillStyle = '#000000';
+          ctx.font = '13px Arial';
+          if (proj.duration) ctx.fillText(proj.duration, rightMargin, currentY);
+          ctx.textAlign = 'left';
+          currentY += 18;
+          if (hasContent(proj.description)) {
+            ctx.fillStyle = '#333333';
+            ctx.font = '12px Arial';
+            const projLines = wrapText(ctx, proj.description, contentWidth - 20, 12);
+            for (const line of projLines) {
+              ctx.fillText(line, leftMargin, currentY);
+              currentY += 15;
+            }
+          }
+          if (hasContent(proj.technologies)) {
+            ctx.fillStyle = '#666666';
+            ctx.font = 'italic 11px Arial';
+            const techText = 'Technologies: ' + proj.technologies.join(', ');
+            const techLines = wrapText(ctx, techText, contentWidth - 20, 11);
+            for (const line of techLines) {
+              ctx.fillText(line, leftMargin, currentY);
+              currentY += 13;
+            }
+          }
+          currentY += 15;
+        });
+      },
+      check: () => hasContent(userData.projects)
+    },
+    {
+      key: 'achievements',
+      render: () => {
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 16px Arial';
+        ctx.fillText('ACHIEVEMENTS', leftMargin, currentY);
+        currentY += 22;
+        userData.achievements.forEach(ach => {
+          if (currentY > height - 100) return;
+          ctx.fillStyle = '#000000';
+          ctx.font = 'bold 14px Arial';
+          ctx.fillText(ach.title || 'Achievement', leftMargin, currentY);
+          ctx.textAlign = 'right';
+          ctx.fillStyle = '#000000';
+          ctx.font = '13px Arial';
+          if (ach.date) ctx.fillText(ach.date, rightMargin, currentY);
+          ctx.textAlign = 'left';
+          currentY += 18;
+          if (hasContent(ach.description)) {
+            ctx.fillStyle = '#333333';
+            ctx.font = '12px Arial';
+            const achLines = wrapText(ctx, ach.description, contentWidth - 20, 12);
+            for (const line of achLines) {
+              ctx.fillText(line, leftMargin, currentY);
+              currentY += 15;
+            }
+          }
+          currentY += 15;
+        });
+      },
+      check: () => hasContent(userData.achievements)
+    },
+    {
+      key: 'languages',
+      render: () => {
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 16px Arial';
+        ctx.fillText('LANGUAGES', leftMargin, currentY);
+        currentY += 22;
+        userData.languages.forEach(lang => {
+          ctx.fillStyle = '#000000';
+          ctx.font = '13px Arial';
+          ctx.fillText(`${lang.name || 'Language'} - ${lang.level || 'Conversational'}`, leftMargin, currentY);
+          currentY += 20;
+        });
+      },
+      check: () => hasContent(userData.languages)
+    },
+    {
+      key: 'certifications',
+      render: () => {
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 16px Arial';
+        ctx.fillText('CERTIFICATIONS', leftMargin, currentY);
+        currentY += 22;
+        userData.certifications.forEach(cert => {
+          ctx.fillStyle = '#000000';
+          ctx.font = 'bold 14px Arial';
+          ctx.fillText(cert.name || 'Certification', leftMargin, currentY);
+          ctx.textAlign = 'right';
+          ctx.fillStyle = '#000000';
+          ctx.font = '13px Arial';
+          if (cert.date) ctx.fillText(cert.date, rightMargin, currentY);
+          ctx.textAlign = 'left';
+          currentY += 18;
+          if (hasContent(cert.issuer)) {
+            ctx.fillStyle = '#333333';
+            ctx.font = '12px Arial';
+            ctx.fillText(`Issued by: ${cert.issuer}`, leftMargin, currentY);
+            currentY += 15;
+          }
+          currentY += 10;
+        });
+      },
+      check: () => hasContent(userData.certifications)
+    }
+  ];
+
+  // Draw header with name, title, contact info
   ctx.fillStyle = '#000000';
   ctx.font = 'bold 28px Arial';
   ctx.textAlign = 'left';
   const userName = (userData.name || 'Your Name').toUpperCase();
   ctx.fillText(userName, leftMargin, currentY);
-  
-  // Professional title
-  currentY += 35;
-  ctx.fillStyle = '#333333';
-  ctx.font = '16px Arial';
+  currentY += 36;
+  ctx.fillStyle = '#000000';
+  ctx.font = '18px Arial';
   const userTitle = userData.title || 'Professional';
   ctx.fillText(userTitle, leftMargin, currentY);
-  
-  // Contact information line
-  currentY += 25;
-  ctx.fillStyle = '#666666';
-  ctx.font = '12px Arial';
+  currentY += 28;
+  ctx.fillStyle = '#000000';
+  ctx.font = '14px Arial';
   const contactInfo = `${userData.email || 'email@example.com'} | ${userData.phone || '+1 (555) 123-4567'} | ${userData.location || 'Location'}`;
   ctx.fillText(contactInfo, leftMargin, currentY);
-  
-  // Professional divider line
   currentY += 20;
   ctx.strokeStyle = '#cccccc';
   ctx.lineWidth = 1;
@@ -295,277 +539,29 @@ const generateResumeImageCanvas = async (userData) => {
   ctx.moveTo(leftMargin, currentY);
   ctx.lineTo(rightMargin, currentY);
   ctx.stroke();
-  
-  currentY += 30;
+  currentY += 24;
 
-  // PROFESSIONAL SUMMARY
-  if (userData.summary) {
-    ctx.fillStyle = '#000000';
-    ctx.font = 'bold 14px Arial';
-    ctx.fillText('PROFESSIONAL SUMMARY', leftMargin, currentY);
-    
-    currentY += 20;
-    ctx.fillStyle = '#333333';
-    ctx.font = '12px Arial';
-    
-    // Wrap text for summary
-    const summaryLines = wrapText(ctx, userData.summary, contentWidth - 20, 12);
-    for (const line of summaryLines) {
-      ctx.fillText(line, leftMargin, currentY);
-      currentY += 16;
+  // Render all sections that have content
+  for (const section of sections) {
+    if (section.check()) {
+      section.render();
     }
-    currentY += 15;
   }
 
-  // SKILLS SECTION
-  if (userData.skills && userData.skills.length > 0) {
-    ctx.fillStyle = '#000000';
-    ctx.font = 'bold 14px Arial';
-    ctx.fillText('CORE COMPETENCIES', leftMargin, currentY);
-    
-    currentY += 20;
-    ctx.fillStyle = '#333333';
-    ctx.font = '12px Arial';
-    
-    // Organize skills by category
-    const skillCategories = {};
-    userData.skills.forEach(skill => {
-      const category = skill.category || 'Technical';
-      if (!skillCategories[category]) skillCategories[category] = [];
-      skillCategories[category].push(skill.name);
-    });
-    
-    Object.keys(skillCategories).forEach(category => {
-      // Category header
-      ctx.fillStyle = '#666666';
-      ctx.font = 'bold 11px Arial';
-      ctx.fillText(`${category.toUpperCase()}:`, leftMargin, currentY);
-      
-      // Skills in category
-      ctx.fillStyle = '#333333';
-      ctx.font = '12px Arial';
-      const skillsText = skillCategories[category].join(' • ');
-      const skillLines = wrapText(ctx, skillsText, contentWidth - 100, 12);
-      
-      skillLines.forEach((line, index) => {
-        ctx.fillText(line, leftMargin + 100, currentY + (index * 15));
-      });
-      
-      currentY += skillLines.length * 15 + 10;
-    });
-    
-    currentY += 10;
-  }
-
-  // PROFESSIONAL EXPERIENCE
-  if (userData.experience && userData.experience.length > 0) {
-    ctx.fillStyle = '#000000';
-    ctx.font = 'bold 14px Arial';
-    ctx.fillText('PROFESSIONAL EXPERIENCE', leftMargin, currentY);
-    
-    currentY += 25;
-    
-    userData.experience.forEach((exp, index) => {
-      if (currentY > height - 200) return; // Page break logic
-      
-      // Position and Company
-      ctx.fillStyle = '#000000';
-      ctx.font = 'bold 13px Arial';
-      ctx.fillText(exp.position || 'Position', leftMargin, currentY);
-      
-      // Duration (right aligned)
-      ctx.textAlign = 'right';
-      ctx.fillStyle = '#666666';
-      ctx.font = '12px Arial';
-      ctx.fillText(exp.duration || 'Duration', rightMargin, currentY);
-      
-      // Company name
-      ctx.textAlign = 'left';
-      currentY += 16;
-      ctx.fillStyle = '#333333';
-      ctx.font = '12px Arial';
-      ctx.fillText(exp.company || 'Company', leftMargin, currentY);
-      
-      currentY += 18;
-      
-      // Description
-      if (exp.description) {
-        ctx.fillStyle = '#444444';
-        ctx.font = '11px Arial';
-        const descLines = wrapText(ctx, exp.description, contentWidth - 20, 11);
-        for (const line of descLines) {
-          ctx.fillText(line, leftMargin, currentY);
-          currentY += 14;
-        }
-      }
-      
-      // Achievements
-      if (exp.achievements && exp.achievements.length > 0) {
-        currentY += 5;
-        exp.achievements.forEach(achievement => {
-          ctx.fillStyle = '#333333';
-          ctx.font = '11px Arial';
-          ctx.fillText('• ' + achievement, leftMargin + 10, currentY);
-          currentY += 14;
-        });
-      }
-      
-      // Technologies
-      if (exp.technologies && exp.technologies.length > 0) {
-        currentY += 5;
-        ctx.fillStyle = '#666666';
-        ctx.font = 'italic 10px Arial';
-        const techText = 'Technologies: ' + exp.technologies.join(', ');
-        const techLines = wrapText(ctx, techText, contentWidth - 20, 10);
-        for (const line of techLines) {
-          ctx.fillText(line, leftMargin, currentY);
-          currentY += 13;
-        }
-      }
-      
-      currentY += 20;
-    });
-  }
-
-  // EDUCATION
-  if (userData.education && userData.education.length > 0) {
-    ctx.fillStyle = '#000000';
-    ctx.font = 'bold 14px Arial';
-    ctx.fillText('EDUCATION', leftMargin, currentY);
-    
-    currentY += 25;
-    
-    userData.education.forEach(edu => {
-      if (currentY > height - 150) return;
-      
-      // Degree
-      ctx.fillStyle = '#000000';
-      ctx.font = 'bold 12px Arial';
-      ctx.fillText(edu.degree || 'Degree', leftMargin, currentY);
-      
-      // Year (right aligned)
-      ctx.textAlign = 'right';
-      ctx.fillStyle = '#666666';
-      ctx.font = '12px Arial';
-      ctx.fillText(edu.year || 'Year', rightMargin, currentY);
-      
-      // Institution
-      ctx.textAlign = 'left';
-      currentY += 16;
-      ctx.fillStyle = '#333333';
-      ctx.font = '12px Arial';
-      ctx.fillText(edu.institution || 'Institution', leftMargin, currentY);
-      
-      // Field and GPA
-      if (edu.field || edu.gpa) {
-        currentY += 14;
-        ctx.fillStyle = '#666666';
-        ctx.font = '11px Arial';
-        let eduDetails = '';
-        if (edu.field) eduDetails += edu.field;
-        if (edu.gpa) eduDetails += (eduDetails ? ' | ' : '') + `GPA: ${edu.gpa}`;
-        ctx.fillText(eduDetails, leftMargin, currentY);
-      }
-      
-      currentY += 20;
-    });
-  }
-
-  // PROJECTS (if space allows)
-  if (userData.projects && userData.projects.length > 0 && currentY < height - 200) {
-    ctx.fillStyle = '#000000';
-    ctx.font = 'bold 14px Arial';
-    ctx.fillText('KEY PROJECTS', leftMargin, currentY);
-    
-    currentY += 25;
-    
-    userData.projects.slice(0, 2).forEach(project => {
-      if (currentY > height - 100) return;
-      
-      // Project name
-      ctx.fillStyle = '#000000';
-      ctx.font = 'bold 12px Arial';
-      ctx.fillText(project.name || 'Project', leftMargin, currentY);
-      
-      currentY += 16;
-      
-      // Description
-      if (project.description) {
-        ctx.fillStyle = '#444444';
-        ctx.font = '11px Arial';
-        const projectLines = wrapText(ctx, project.description, contentWidth - 20, 11);
-        for (const line of projectLines.slice(0, 2)) { // Limit to 2 lines
-          ctx.fillText(line, leftMargin, currentY);
-          currentY += 14;
-        }
-      }
-      
-      // Technologies
-      if (project.technologies && project.technologies.length > 0) {
-        currentY += 3;
-        ctx.fillStyle = '#666666';
-        ctx.font = 'italic 10px Arial';
-        const techText = 'Technologies: ' + project.technologies.join(', ');
-        ctx.fillText(techText, leftMargin, currentY);
-        currentY += 13;
-      }
-      
-      currentY += 15;
-    });
-  }
-
-  // CERTIFICATIONS & LANGUAGES (Bottom section)
-  let bottomY = height - 120;
-  
-  if (userData.certifications && userData.certifications.length > 0) {
-    ctx.fillStyle = '#000000';
-    ctx.font = 'bold 12px Arial';
-    ctx.fillText('CERTIFICATIONS', leftMargin, bottomY);
-    
-    bottomY += 18;
-    ctx.fillStyle = '#333333';
-    ctx.font = '11px Arial';
-    
-    userData.certifications.slice(0, 3).forEach(cert => {
-      const certText = `• ${cert.name} - ${cert.issuer} (${cert.date || 'Current'})`;
-      ctx.fillText(certText, leftMargin, bottomY);
-      bottomY += 14;
-    });
-  }
-  
-  if (userData.languages && userData.languages.length > 0) {
-    bottomY += 10;
-    ctx.fillStyle = '#000000';
-    ctx.font = 'bold 12px Arial';
-    ctx.fillText('LANGUAGES', leftMargin, bottomY);
-    
-    bottomY += 18;
-    ctx.fillStyle = '#333333';
-    ctx.font = '11px Arial';
-    
-    const langText = userData.languages.map(lang => `${lang.name} (${lang.level})`).join(' • ');
-    ctx.fillText(langText, leftMargin, bottomY);
-  }
-
-  // Return canvas data
   return {
     dataUrl: canvas.toDataURL('image/png'),
     buffer: canvas.toBuffer('image/png')
   };
-};
+}
 
-// Main export function
-export const generateResumeFromJobDescription = async (userData) => {
+// Main export: generate resume from job description with AI and fallback
+const generateResumeFromJobDescription = async (userData) => {
   try {
     console.log('Starting AI-powered resume generation...');
-    
-    // Step 1: Refine raw user data using Gemini AI
     const refinedData = await refineUserDataWithAI(userData);
     console.log('Refined data structure:', JSON.stringify(refinedData, null, 2));
-    
-    // Step 2: Generate canvas image with refined data
     const canvasImage = await generateResumeImageCanvas(refinedData);
-    
+
     return {
       success: true,
       type: 'image',
@@ -573,16 +569,14 @@ export const generateResumeFromJobDescription = async (userData) => {
       buffer: canvasImage.buffer,
       model: 'Gemini AI + Professional Canvas Generator',
       format: 'png',
-      refinedData: refinedData
+      refinedData
     };
   } catch (error) {
     console.error('AI-powered resume generation error:', error);
-    
-    // Fallback to basic generation
     try {
       const fallbackData = createFallbackStructuredData(userData);
       const canvasImage = await generateResumeImageCanvas(fallbackData);
-      
+
       return {
         success: false,
         type: 'image',
@@ -597,4 +591,12 @@ export const generateResumeFromJobDescription = async (userData) => {
       throw new Error('Resume generation failed completely');
     }
   }
+};
+
+export {
+  refineUserDataWithAI,
+  generateResumeFromJobDescription,
+  wrapText,
+  hasContent,
+  generateResumeImageCanvas
 };

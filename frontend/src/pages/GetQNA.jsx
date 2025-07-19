@@ -90,7 +90,6 @@ const GetQNA = () => {
   return (
     <div className="min-h-screen bg-[var(--color-base-100)] py-8 px-4 pt-24">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-[var(--color-base-content)] mb-4">
             AI Career Assistant
@@ -206,7 +205,7 @@ const GetQNA = () => {
                 {conversationHistory.map((item) => (
                   <div
                     key={item.id}
-                    className={`p-4 rounded-xl ${
+                    className={`p-4 rounded-xl break-words ${
                       item.type === 'user'
                         ? 'bg-[var(--color-primary)] text-[var(--color-primary-content)] ml-8'
                         : 'bg-[var(--color-base-100)] text-[var(--color-base-content)] mr-8 border border-[var(--color-base-300)]'
@@ -226,11 +225,11 @@ const GetQNA = () => {
                           </svg>
                         )}
                       </div>
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         {item.type === 'user' ? (
-                          <p className="text-sm">{item.content}</p>
+                          <p className="text-sm break-words whitespace-pre-line">{item.content}</p>
                         ) : (
-                          <div className="prose prose-sm max-w-none text-[var(--color-base-content)]">
+                          <div className="prose prose-sm max-w-full text-[var(--color-base-content)] break-words whitespace-pre-line overflow-x-auto">
                             <ReactMarkdown>{item.content}</ReactMarkdown>
                           </div>
                         )}

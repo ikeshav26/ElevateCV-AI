@@ -11,102 +11,72 @@ const Explore = () => {
   const [coverLetters, setCoverLetters] = useState([])
   const [loading, setLoading] = useState(false)
 
-  // Fetch resumes data
+
   const fetchResumes = async () => {
-    if (!user) return
-    
-    setLoading(true)
+    if (!user) return;
+    setLoading(true);
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/api/resume/explore`,
         { withCredentials: true }
-      )
-      
-      console.log('Resume API Response:', response.data)
-      
+      );
       if (response.data.success) {
-        const resumeData = response.data.data || response.data.resumes || []
-        console.log('Parsed Resume Data:', resumeData)
-        setResumes(resumeData)
+        const resumeData = response.data.data || response.data.resumes || [];
+        setResumes(resumeData);
       } else if (Array.isArray(response.data)) {
-        // Handle case where API returns array directly
-        console.log('Direct Array Resume Data:', response.data)
-        setResumes(response.data)
+        setResumes(response.data);
       } else {
-        console.error('Failed to fetch resumes:', response.data.message)
-        setResumes([])
+        setResumes([]);
       }
     } catch (error) {
-      console.error('Error fetching resumes:', error)
-      toast.error('Failed to load resumes')
-      setResumes([])
+      toast.error('Failed to load resumes');
+      setResumes([]);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  // Fetch cover letters data
   const fetchCoverLetters = async () => {
-    if (!user) return
-    
-    setLoading(true)
+    if (!user) return;
+    setLoading(true);
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/api/letter/explore`,
         { withCredentials: true }
-      )
-      
-      console.log('Cover Letter API Response:', response.data)
-      
+      );
       if (response.data.success) {
-        const letterData = response.data.data || response.data.letters || []
-        console.log('Parsed Cover Letter Data:', letterData)
-        setCoverLetters(letterData)
+        const letterData = response.data.data || response.data.letters || [];
+        setCoverLetters(letterData);
       } else if (Array.isArray(response.data)) {
-        // Handle case where API returns array directly
-        console.log('Direct Array Cover Letter Data:', response.data)
-        setCoverLetters(response.data)
+        setCoverLetters(response.data);
       } else {
-        console.error('Failed to fetch cover letters:', response.data.message)
-        setCoverLetters([])
+        setCoverLetters([]);
       }
     } catch (error) {
-      console.error('Error fetching cover letters:', error)
-      toast.error('Failed to load cover letters')
-      setCoverLetters([])
+      toast.error('Failed to load cover letters');
+      setCoverLetters([]);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     if (user) {
-      fetchResumes()
-      fetchCoverLetters()
+      fetchResumes();
+      fetchCoverLetters();
     }
-  }, [user])
-
-  // Debug logging
-  useEffect(() => {
-    console.log('Current resumes state:', resumes)
-    console.log('Current coverLetters state:', coverLetters)
-    console.log('Active tab:', activeTab)
-  }, [resumes, coverLetters, activeTab])
+    // eslint-disable-next-line
+  }, [user]);
 
   const handleDownload = (item, type) => {
-    const downloadUrl = item.resumeUrl || item.letterUrl || item.imageUrl
+    const downloadUrl = item.resumeUrl || item.letterUrl || item.imageUrl;
     if (downloadUrl) {
-      const link = document.createElement('a')
-      link.href = downloadUrl
-      link.download = `${type}-${item.name || item._id || item.id}.png`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      toast.success(`${type} downloaded!`)
+      window.open(downloadUrl, '_blank', 'noopener,noreferrer');
+      toast.success(`${type} opened in new tab!`);
     } else {
-      toast.error(`No downloadable ${type} available`)
+      toast.error(`No downloadable ${type} available`);
     }
-  }
+  };
 
   const ResumeCard = ({ resume }) => (
     <div className="bg-[var(--color-base-200)] rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 group">
